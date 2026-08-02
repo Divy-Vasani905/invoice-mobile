@@ -1,0 +1,16 @@
+{
+  "react-native": {
+    "analytics_auto_collection_enabled": true,
+    "analytics_force_appstart_appinstanceid_generation": true,
+    "crashlytics_auto_collection_enabled": true,
+    "crashlytics_debug_enabled": false,
+    "crashlytics_is_error_generation_on_js_crash_enabled": true,
+    "crashlytics_javascript_exception_handler_chaining_enabled": true,
+    "messaging_auto_init_enabled": true,
+    "messaging_android_headless_task_timeout": 30000,
+    "messaging_android_notification_channel_id": "",
+    "messaging_android_notification_color": "",
+    "messaging_ios_auto_register_for_remote_messages": true,
+    "messaging_ios_foreground_presentation_options": ["badge", "sound", "list", "banner"]
+  }
+}

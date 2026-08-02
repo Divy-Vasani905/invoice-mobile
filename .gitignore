@@ -34,6 +34,11 @@ yarn-error.*
 .env
 .env*.local
 
+# Firebase native config with real credentials (keep *.example committed)
+# Uncomment these lines once you replace placeholders with production files:
+# /google-services.json
+# /GoogleService-Info.plist
+
 # typescript
 *.tsbuildinfo
 
