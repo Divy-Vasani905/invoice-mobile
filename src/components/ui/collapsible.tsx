@@ -1,11 +1,11 @@
 import { SymbolView } from 'expo-symbols';
 import { PropsWithChildren, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { cStyle } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
@@ -15,10 +15,13 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   return (
     <ThemedView>
       <Pressable
-        style={({ pressed }) => [styles.heading, pressed && styles.pressedHeading]}
+        style={({ pressed }) => [cStyle.flexRow, cStyle.itemCenter, cStyle.g8, pressed && cStyle.opacity70]}
         onPress={() => setIsOpen((value) => !value)}
       >
-        <ThemedView type="backgroundElement" style={styles.button}>
+        <ThemedView
+          type="backgroundElement"
+          style={[buttonStyle, cStyle.r12, cStyle.justifyCenter, cStyle.itemCenter]}
+        >
           <SymbolView
             name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
             size={14}
@@ -32,7 +35,10 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
       </Pressable>
       {isOpen && (
         <Animated.View entering={FadeIn.duration(200)}>
-          <ThemedView type="backgroundElement" style={styles.content}>
+          <ThemedView
+            type="backgroundElement"
+            style={[cStyle.mt16, cStyle.r16, cStyle.ml24, cStyle.p24]}
+          >
             {children}
           </ThemedView>
         </Animated.View>
@@ -41,26 +47,4 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   );
 }
 
-const styles = StyleSheet.create({
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  pressedHeading: {
-    opacity: 0.7,
-  },
-  button: {
-    width: Spacing.four,
-    height: Spacing.four,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    marginTop: Spacing.three,
-    borderRadius: Spacing.three,
-    marginLeft: Spacing.four,
-    padding: Spacing.four,
-  },
-});
+const buttonStyle = { width: 24, height: 24 } as const;
