@@ -69,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-dev-client',
+    './plugins/with-android-cmake-version',
     [
       'expo-splash-screen',
       {

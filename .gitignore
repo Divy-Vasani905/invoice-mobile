@@ -49,7 +49,3 @@ coverage/
 .idea/
 
 example
-
-# generated native folders
-/ios
-/android
