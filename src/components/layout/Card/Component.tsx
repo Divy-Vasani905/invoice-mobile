@@ -18,6 +18,7 @@ export const Card = memo(function Card({
   style,
   onPress,
   accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   const { theme } = useTheme();
   const token = theme.cards.variants[variant];
@@ -41,6 +42,8 @@ export const Card = memo(function Card({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled, busy: loading }}
       disabled={disabled}
       onPress={onPress}
       style={[container, style]}

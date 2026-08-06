@@ -1,5 +1,8 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { useLocalSearchParams } from 'expo-router';
+
+import { CustomerFormScreen } from '@/features/customer/screens/CustomerFormScreen';
 
 export default function EditCustomerRoute() {
-  return <ScreenPlaceholder name="Edit Customer" />;
+  const { customerId } = useLocalSearchParams<{ customerId: string }>();
+  return <CustomerFormScreen customerId={customerId} />;
 }

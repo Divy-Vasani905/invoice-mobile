@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { CustomersScreen } from '@/features/customer/screens/CustomersScreen';
 
 export default function CustomersListRoute() {
-  return <ScreenPlaceholder name="Customers List" />;
+  return <CustomersScreen />;
 }

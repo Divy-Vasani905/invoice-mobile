@@ -26,7 +26,7 @@ export const Header = memo(function Header({
           alignItems: 'center',
           gap: theme.inputs.layout.gap,
           padding: theme.cards.layout.padding,
-          backgroundColor: theme.colors.surface,
+          // backgroundColor: theme.colors.surface,
         },
         style,
       ]}

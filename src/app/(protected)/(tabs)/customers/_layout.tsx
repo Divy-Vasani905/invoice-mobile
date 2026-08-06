@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-import { createHeaderOptions } from '@/navigation/config/screen-options';
+import { HEADERLESS_SCREEN_OPTIONS, createHeaderOptions } from '@/navigation/config/screen-options';
 import { useStackScreenOptions } from '@/navigation/hooks/use-screen-options';
 
 export const unstable_settings = {
@@ -16,10 +16,7 @@ export default function CustomersLayout() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen
-        name="index"
-        options={createHeaderOptions({ title: 'Customers', largeTitle: true })}
-      />
+      <Stack.Screen name="index" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen
         name="[customerId]"
         options={createHeaderOptions({ title: 'Customer Details' })}

@@ -32,7 +32,7 @@ export const Modal = memo(function Modal({
   animationType = 'fade',
 }: FeedbackModalProps) {
   const { theme } = useTheme();
-  const maxWidth = theme.avatarSizes[modalWidthBySize[size]];
+  const maxWidth = theme.avatarSizes[modalWidthBySize[size]] * 5;
   const primaryVariant = variant === 'destructive' ? 'danger' : 'primary';
 
   return (

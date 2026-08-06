@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { CustomerFormScreen } from '@/features/customer/screens/CustomerFormScreen';
 
 export default function CreateCustomerRoute() {
-  return <ScreenPlaceholder name="Create Customer" />;
+  return <CustomerFormScreen />;
 }

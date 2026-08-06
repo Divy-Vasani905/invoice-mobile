@@ -16,4 +16,5 @@ export interface CardProps {
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
