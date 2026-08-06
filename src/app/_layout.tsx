@@ -1,32 +1,83 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { type PropsWithChildren, useEffect, useMemo } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { ToastHost } from '@/components/feedback/Toast';
+import { createNavigationTheme } from '@/navigation/config/navigation-theme';
+import { HEADERLESS_SCREEN_OPTIONS, createHeaderOptions } from '@/navigation/config/screen-options';
+import { ROUTE_NAMES } from '@/navigation/constants/routes';
+import { useNavigationGuards } from '@/navigation/guards/use-navigation-guards';
+import { useStackScreenOptions } from '@/navigation/hooks/use-screen-options';
 import { queryClient } from '@/providers/query-client';
 import { initializeProductionServices } from '@/services/bootstrap';
+import { cStyle, ThemeProvider, useTheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function RootLayout() {
   useEffect(() => {
     void initializeProductionServices();
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <KeyboardProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <AnimatedSplashOverlay />
-          <AppTabs />
+    <GestureHandlerRootView style={cStyle.flex1}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <KeyboardProvider>
+            <NavigationChrome>
+              <RootNavigator />
+            </NavigationChrome>
+          </KeyboardProvider>
         </ThemeProvider>
-      </KeyboardProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+/** Feeds the design system theme into React Navigation and the status bar. */
+function NavigationChrome({ children }: PropsWithChildren) {
+  const { theme, isDark } = useTheme();
+  const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
+
+  return (
+    <NavigationThemeProvider value={navigationTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {children}
+      <ToastHost />
+    </NavigationThemeProvider>
+  );
+}
+
+/**
+ * Root stack. It only arbitrates between the public flow and the main
+ * application; every other route lives inside one of those two groups.
+ */
+function RootNavigator() {
+  const { isBootstrapping, isAuthenticated } = useNavigationGuards();
+  const screenOptions = useStackScreenOptions(HEADERLESS_SCREEN_OPTIONS);
+
+  useEffect(() => {
+    if (!isBootstrapping) {
+      void SplashScreen.hideAsync();
+    }
+  }, [isBootstrapping]);
+
+  return (
+    <Stack screenOptions={screenOptions}>
+      <Stack.Screen name={ROUTE_NAMES.public} />
+
+      <Stack.Protected guard={isAuthenticated}>
+        <Stack.Screen name={ROUTE_NAMES.protected} />
+      </Stack.Protected>
+
+      <Stack.Screen
+        name={ROUTE_NAMES.notFound}
+        options={createHeaderOptions({ title: 'Not Found' })}
+      />
+    </Stack>
   );
 }
