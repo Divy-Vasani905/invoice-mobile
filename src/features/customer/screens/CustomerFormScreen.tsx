@@ -2,7 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -104,29 +105,27 @@ export const CustomerFormScreen = memo(function CustomerFormScreen({
   return (
     <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
       <Stack.Screen options={{ title: isEdit ? 'Edit Customer' : 'Add Customer' }} />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={cStyle.flex1}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        contentContainerStyle={{
+          padding: cStyleValues.spacing.lg,
+          paddingBottom: cStyleValues.spacing.lg + insets.bottom,
+        }}
+        bottomOffset={cStyleValues.spacing['4xl']}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={{
-            padding: cStyleValues.spacing.lg,
-            paddingBottom: cStyleValues.spacing.lg + insets.bottom,
-          }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <CustomerForm
-            control={control}
-            errors={errors}
-            isSaving={isSaving}
-            isEdit={isEdit}
-            onCancel={close}
-            onSubmit={save}
-            onDelete={() => setShowDeleteConfirmation(true)}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <CustomerForm
+          control={control}
+          errors={errors}
+          isSaving={isSaving}
+          isEdit={isEdit}
+          onCancel={close}
+          onSubmit={save}
+          onDelete={() => setShowDeleteConfirmation(true)}
+        />
+      </KeyboardAwareScrollView>
       <Modal
         visible={showDeleteConfirmation}
         title="Delete customer?"

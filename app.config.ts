@@ -1,7 +1,8 @@
 /// <reference types="node" />
-import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+
+import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 /**
  * Google AdMob official sample App IDs (safe for local builds).
@@ -69,6 +70,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-dev-client',
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Allow $(PRODUCT_NAME) to access your photos so you can set a business logo and signature.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
     './plugins/with-android-cmake-version',
     [
       'expo-splash-screen',
@@ -102,12 +112,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         ios: {
           useFrameworks: 'static',
-          forceStaticLinking: [
-            'RNFBApp',
-            'RNFBAnalytics',
-            'RNFBCrashlytics',
-            'RNFBMessaging',
-          ],
+          forceStaticLinking: ['RNFBApp', 'RNFBAnalytics', 'RNFBCrashlytics', 'RNFBMessaging'],
         },
       },
     ],

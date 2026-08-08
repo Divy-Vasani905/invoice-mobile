@@ -28,6 +28,7 @@ export const ROUTES = {
 
   // Business / Settings module
   businessProfile: '/settings/business-profile' as Href,
+  businessForm: '/settings/business-form' as Href,
   invoiceSettings: '/settings/invoice-settings' as Href,
   invoiceTemplates: '/settings/invoice-templates' as Href,
   invoiceNumberFormat: '/settings/invoice-number-format' as Href,

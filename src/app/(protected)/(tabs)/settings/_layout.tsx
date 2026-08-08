@@ -17,10 +17,8 @@ export default function SettingsLayout() {
   return (
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name="index" options={HEADERLESS_SCREEN_OPTIONS} />
-      <Stack.Screen
-        name="business-profile"
-        options={createHeaderOptions({ title: 'Business Profile' })}
-      />
+      <Stack.Screen name="business-profile" options={HEADERLESS_SCREEN_OPTIONS} />
+      <Stack.Screen name="business-form" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen
         name="invoice-settings"
         options={createHeaderOptions({ title: 'Invoice Settings' })}

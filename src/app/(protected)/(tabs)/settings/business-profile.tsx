@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { BusinessProfileScreen } from '@/features/business/screens/BusinessProfileScreen';
 
 export default function BusinessProfileRoute() {
-  return <ScreenPlaceholder name="Business Profile" />;
+  return <BusinessProfileScreen />;
 }
