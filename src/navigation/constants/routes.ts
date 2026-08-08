@@ -26,10 +26,20 @@ export const ROUTES = {
   // Products module (stack under dashboard — not a tab)
   products: '/dashboard/products' as Href,
 
-  // Business module
+  // Business / Settings module
   businessProfile: '/settings/business-profile' as Href,
   invoiceSettings: '/settings/invoice-settings' as Href,
+  invoiceTemplates: '/settings/invoice-templates' as Href,
+  invoiceNumberFormat: '/settings/invoice-number-format' as Href,
+  currencySettings: '/settings/currency' as Href,
+  taxSettings: '/settings/tax-settings' as Href,
   backupRestore: '/settings/backup-restore' as Href,
+  helpCenter: '/settings/help-center' as Href,
+  contactSupport: '/settings/contact-support' as Href,
+  reportBug: '/settings/report-bug' as Href,
+  featureRequest: '/settings/feature-request' as Href,
+  privacyPolicy: '/settings/privacy-policy' as Href,
+  termsOfService: '/settings/terms' as Href,
 
   // Premium module
   premium: '/premium' as Href,

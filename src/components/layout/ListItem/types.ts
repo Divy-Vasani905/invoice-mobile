@@ -13,5 +13,7 @@ export interface ListItemProps {
   pressable?: boolean;
   disabled?: boolean;
   onPress?: () => void;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
 }

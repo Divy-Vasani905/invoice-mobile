@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { SettingsScreen } from '@/features/settings/screens/SettingsScreen';
 
 export default function SettingsRoute() {
-  return <ScreenPlaceholder name="Settings" />;
+  return <SettingsScreen />;
 }
