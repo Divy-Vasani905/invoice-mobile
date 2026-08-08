@@ -16,6 +16,7 @@ export const MOCK_DASHBOARD_DATA: DashboardData = {
       actionKey: 'new_invoice',
     },
   ],
+  recentProducts: [],
   recentInvoices: [
     {
       id: 'inv-0025',

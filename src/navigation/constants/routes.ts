@@ -23,6 +23,9 @@ export const ROUTES = {
   // Customers module
   customerDetails: (customerId: string): Href => `/customers/${customerId}` as Href,
 
+  // Products module (stack under dashboard — not a tab)
+  products: '/dashboard/products' as Href,
+
   // Business module
   businessProfile: '/settings/business-profile' as Href,
   invoiceSettings: '/settings/invoice-settings' as Href,
@@ -39,6 +42,8 @@ export const ROUTES = {
   invoicePreview: (invoiceId: string): Href => `/invoice-preview/${invoiceId}` as Href,
   createCustomer: '/create-customer' as Href,
   editCustomer: (customerId: string): Href => `/edit-customer/${customerId}` as Href,
+  createProduct: '/create-product' as Href,
+  editProduct: (productId: string): Href => `/edit-product/${productId}` as Href,
 } as const;
 
 /**
@@ -59,5 +64,7 @@ export const ROUTE_NAMES = {
     invoicePreview: '(modals)/invoice-preview/[invoiceId]',
     createCustomer: '(modals)/create-customer',
     editCustomer: '(modals)/edit-customer/[customerId]',
+    createProduct: '(modals)/create-product',
+    editProduct: '(modals)/edit-product/[productId]',
   },
 } as const;

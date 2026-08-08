@@ -1,3 +1,5 @@
+import type { ProductListItem } from '@/features/product/types/product.types';
+
 export interface BusinessInfo {
   name: string;
   monthlyRevenue: number;
@@ -24,8 +26,11 @@ export interface QuickAction {
   actionKey: 'new_invoice';
 }
 
+export type DashboardRecentMode = 'invoices' | 'products';
+
 export interface DashboardData {
   business: BusinessInfo;
   recentInvoices: Invoice[];
+  recentProducts: ProductListItem[];
   quickActions: QuickAction[];
 }

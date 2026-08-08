@@ -1,38 +1,57 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { ROUTES } from '@/navigation';
 
 import { DashboardRepository } from '../repositories/DashboardRepository';
 
+import type { DashboardRecentMode } from '../types/dashboard.types';
+
 const dashboardRepository = new DashboardRepository();
 
 export function useDashboard() {
   const router = useRouter();
+  const [recentMode, setRecentMode] = useState<DashboardRecentMode>('invoices');
   const query = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardRepository.get(),
   });
+  const { refetch } = query;
 
   const actions = useMemo(
     () => ({
       createInvoice: () => router.push(ROUTES.createInvoice),
+      createProduct: () => router.push(ROUTES.createProduct),
       openBusinessProfile: () => router.push(ROUTES.businessProfile),
       openInvoice: (invoiceId: string) => router.push(ROUTES.invoiceDetails(invoiceId)),
       openInvoices: () => router.push(ROUTES.invoices),
+      openProduct: (productId: string) => router.push(ROUTES.editProduct(productId)),
+      openProducts: () => router.push(ROUTES.products),
     }),
     [router],
   );
 
+  const openSeeAll = useCallback(() => {
+    if (recentMode === 'products') {
+      actions.openProducts();
+      return;
+    }
+    actions.openInvoices();
+  }, [actions, recentMode]);
+
   return {
     data: query.data,
+    recentMode,
+    setRecentMode,
     isLoading: query.isLoading,
     isRefreshing: query.isRefetching,
-    isEmpty: query.data != null && query.data.recentInvoices.length === 0,
+    isEmptyInvoices: query.data != null && query.data.recentInvoices.length === 0,
+    isEmptyProducts: query.data != null && query.data.recentProducts.length === 0,
     isError: query.isError,
     error: query.error,
-    refresh: useCallback(() => query.refetch(), [query]),
+    refresh: useCallback(() => refetch(), [refetch]),
+    openSeeAll,
     ...actions,
   };
 }

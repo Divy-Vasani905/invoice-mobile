@@ -48,6 +48,14 @@ export default function ProtectedLayout() {
         name={ROUTE_NAMES.modals.editCustomer}
         options={modal.modal({ title: 'Edit Customer' })}
       />
+      <Stack.Screen
+        name={ROUTE_NAMES.modals.createProduct}
+        options={modal.modal({ title: 'Add Product' })}
+      />
+      <Stack.Screen
+        name={ROUTE_NAMES.modals.editProduct}
+        options={modal.modal({ title: 'Edit Product' })}
+      />
     </Stack>
   );
 }

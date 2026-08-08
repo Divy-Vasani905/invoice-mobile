@@ -1,3 +1,4 @@
+import { productFeatureRepository } from '@/features/product/repositories/ProductRepository';
 import { businessRepository, invoiceRepository } from '@/storage';
 import { InvoiceStatus, type Invoice as DomainInvoice } from '@/types/models';
 
@@ -31,6 +32,7 @@ export class DashboardRepository {
         .sort((left, right) => right.issuedAt.localeCompare(left.issuedAt))
         .slice(0, RECENT_INVOICE_LIMIT)
         .map(toDashboardInvoice),
+      recentProducts: productFeatureRepository.getRecentProducts(),
       quickActions: [],
     };
   }

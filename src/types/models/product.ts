@@ -7,10 +7,12 @@ export enum ProductType {
 
 export enum ProductUnit {
   Each = 'each',
+  Piece = 'piece',
   Hour = 'hour',
   Day = 'day',
   Week = 'week',
   Month = 'month',
+  Project = 'project',
   Kilogram = 'kilogram',
   Gram = 'gram',
   Litre = 'litre',

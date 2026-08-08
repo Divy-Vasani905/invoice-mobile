@@ -1,38 +1,52 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack } from 'expo-router';
-import { memo, useCallback, useMemo } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Loader } from '@/components/feedback/Loader';
+import { Modal } from '@/components/feedback/Modal';
 import { IconButton } from '@/components/IconButton';
-import { SectionHeader } from '@/components/layout/SectionHeader';
 import { SummaryCard } from '@/components/layout/SummaryCard';
 import { ThemedText } from '@/components/themed-text';
-import { useTheme, cStyle } from '@/theme';
+import { ProductCard } from '@/features/product/components/ProductCard';
+import type { ProductListItem } from '@/features/product/types/product.types';
+import { cStyle, useTheme } from '@/theme';
+import { cStyleValues } from '@/theme/cStyle';
 
 import { AnalyticsCard } from '../components/AnalyticsCard';
 import { InvoiceCard } from '../components/InvoiceCard';
 import { useDashboard } from '../hooks/useDashboard';
 
-import type { Invoice } from '../types/dashboard.types';
+import type { DashboardRecentMode, Invoice } from '../types/dashboard.types';
+
+const RECENT_MODE_OPTIONS: { value: DashboardRecentMode; label: string }[] = [
+  { value: 'invoices', label: 'Recent Invoices' },
+  { value: 'products', label: 'Recent Products' },
+];
 
 export const DashboardScreen = memo(function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const [showRecentModePicker, setShowRecentModePicker] = useState(false);
   const {
     data: queryData,
+    recentMode,
+    setRecentMode,
     isError,
     isRefreshing,
-    isEmpty,
+    isEmptyInvoices,
+    isEmptyProducts,
     refresh,
     createInvoice,
+    createProduct,
     openBusinessProfile,
     openInvoice,
-    openInvoices,
+    openProduct,
+    openSeeAll,
   } = useDashboard();
   const data = queryData ?? {
     business: {
@@ -43,13 +57,13 @@ export const DashboardScreen = memo(function DashboardScreen() {
       currencyCode: 'USD',
     },
     recentInvoices: [],
+    recentProducts: [],
     quickActions: [],
   };
 
-  // Format currency value helper
   const formatCurrency = useCallback(
     (value: number) => {
-      return new Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat(undefined, {
         style: 'currency',
         currency: data.business.currencyCode,
       }).format(value);
@@ -57,7 +71,6 @@ export const DashboardScreen = memo(function DashboardScreen() {
     [data.business.currencyCode],
   );
 
-  // Growth badge component for total revenue card
   const growthBadge = useMemo(() => {
     return (
       <Badge
@@ -69,13 +82,14 @@ export const DashboardScreen = memo(function DashboardScreen() {
     );
   }, [data.business.revenueGrowth]);
 
-  // List header layout (Top Bar, Greeting, Revenue, Analytics, Button)
+  const recentTitle =
+    RECENT_MODE_OPTIONS.find((option) => option.value === recentMode)?.label ?? 'Recent Invoices';
+  const listData = recentMode === 'products' ? data.recentProducts : data.recentInvoices;
+
   const renderListHeader = useCallback(() => {
     return (
       <View style={[cStyle.g16, cStyle.mb16]}>
-        {/* Top App Bar */}
         <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.pv8]}>
-          {/* App Logo */}
           <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g8]}>
             <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.primarySubtle }]}>
               <Ionicons name="receipt-sharp" size={22} color={theme.colors.primary} />
@@ -91,7 +105,6 @@ export const DashboardScreen = memo(function DashboardScreen() {
             </ThemedText>
           </View>
 
-          {/* Top Actions: Notifications + Profile Avatar */}
           <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g12]}>
             <IconButton
               icon={({ color, size }) => (
@@ -110,23 +123,23 @@ export const DashboardScreen = memo(function DashboardScreen() {
           </View>
         </View>
 
-        {/* Greeting Section */}
-        <View style={[cStyle.pv4]}>
+        <View style={[cStyle.pv2]}>
           <ThemedText style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
             Good Morning,
           </ThemedText>
-          <ThemedText
-            style={[
-              theme.typography.title,
-              cStyle.fontBold,
-              { color: theme.colors.textPrimary, fontSize: 24, marginTop: 2 },
-            ]}
-          >
-            {data.business.name}
-          </ThemedText>
+          {data.business.name.length > 0 && (
+            <ThemedText
+              style={[
+                theme.typography.title,
+                cStyle.fontBold,
+                { color: theme.colors.textPrimary, fontSize: 24, marginTop: 2 },
+              ]}
+            >
+              {data.business.name}
+            </ThemedText>
+          )}
         </View>
 
-        {/* Revenue Card (reusable SummaryCard) */}
         <SummaryCard
           title="Total Revenue"
           value={formatCurrency(data.business.monthlyRevenue)}
@@ -134,7 +147,6 @@ export const DashboardScreen = memo(function DashboardScreen() {
           badge={growthBadge}
         />
 
-        {/* Analytics Cards Row */}
         <View style={[cStyle.flexRow, cStyle.g12, cStyle.itemCenter]}>
           <AnalyticsCard
             title="This Month"
@@ -148,64 +160,131 @@ export const DashboardScreen = memo(function DashboardScreen() {
           />
         </View>
 
-        {/* Primary Action Button */}
-        <Button
-          label="New Invoice"
-          variant="primary"
-          size="lg"
-          style={cStyle.mv8}
-          leftIcon={({ color, size }) => <Ionicons name="add-sharp" color={color} size={size} />}
-          onPress={createInvoice}
-        />
+        <View style={[cStyle.flexRow, cStyle.g12]}>
+          <Button
+            label="New Invoice"
+            variant="primary"
+            size="md"
+            style={cStyle.flex1}
+            leftIcon={({ color, size }) => <Ionicons name="add-sharp" color={color} size={size} />}
+            onPress={createInvoice}
+            accessibilityHint="Opens the create invoice screen"
+          />
+          <Button
+            label="Add Product"
+            variant="outline"
+            size="md"
+            style={cStyle.flex1}
+            leftIcon={({ color, size }) => (
+              <Ionicons name="cube-outline" color={color} size={size} />
+            )}
+            onPress={createProduct}
+            accessibilityHint="Opens the add product form"
+          />
+        </View>
 
-        {/* Recent Invoices Title */}
-        <SectionHeader
-          title="Recent Invoices"
-          actionLabel="See All"
-          onActionPress={openInvoices}
-          style={cStyle.ph0} // Align cleanly with the list layout width
-        />
+        <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.pv8]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${recentTitle}. Change recent content`}
+            accessibilityHint="Opens recent invoices or recent products options"
+            onPress={() => setShowRecentModePicker(true)}
+            style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g4, { minHeight: 44 }]}
+          >
+            <ThemedText
+              style={[
+                theme.typography.title,
+                { color: theme.colors.textPrimary, fontSize: 18, lineHeight: 24 },
+              ]}
+            >
+              {recentTitle}
+            </ThemedText>
+            <Ionicons name="chevron-down" size={theme.iconSizes.md} color={theme.colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={openSeeAll}
+            accessibilityRole="button"
+            accessibilityLabel={`See all ${recentMode === 'products' ? 'products' : 'invoices'}`}
+            hitSlop={8}
+            style={({ pressed }) => [
+              pressed && cStyle.opacity64,
+              { minHeight: 44, justifyContent: 'center' },
+            ]}
+          >
+            <ThemedText style={[theme.typography.label, { color: theme.colors.primary }]}>
+              See All
+            </ThemedText>
+          </Pressable>
+        </View>
       </View>
     );
   }, [
-    data.business.name,
+    createInvoice,
+    createProduct,
     data.business.monthlyRevenue,
+    data.business.name,
     data.business.weeklyRevenue,
     formatCurrency,
     growthBadge,
-    createInvoice,
     openBusinessProfile,
-    openInvoices,
+    openSeeAll,
+    recentMode,
+    recentTitle,
     theme,
   ]);
 
-  // List item renderer
   const renderItem = useCallback(
-    ({ item }: { item: Invoice }) => {
+    ({ item }: { item: Invoice | ProductListItem }) => {
+      if (recentMode === 'products') {
+        const productItem = item as ProductListItem;
+        return <ProductCard item={productItem} onPress={openProduct} />;
+      }
+
+      const invoice = item as Invoice;
       return (
         <InvoiceCard
-          invoiceNumber={item.invoiceNumber}
-          customerName={item.customerName}
-          amount={item.amount}
-          status={item.status}
-          date={item.date}
-          onPress={() => openInvoice(item.id)}
+          invoiceNumber={invoice.invoiceNumber}
+          customerName={invoice.customerName}
+          amount={invoice.amount}
+          status={invoice.status}
+          date={invoice.date}
+          onPress={() => openInvoice(invoice.id)}
         />
       );
     },
-    [openInvoice],
+    [openInvoice, openProduct, recentMode],
   );
 
-  // Empty list placeholder component
+  const keyExtractor = useCallback(
+    (item: Invoice | ProductListItem) => {
+      if (recentMode === 'products') return (item as ProductListItem).product.id;
+      return (item as Invoice).id;
+    },
+    [recentMode],
+  );
+
   const renderEmptyList = useCallback(() => {
-    return isEmpty ? (
+    if (recentMode === 'products') {
+      return isEmptyProducts ? (
+        <View style={[cStyle.pv16]}>
+          <EmptyState
+            title="No products yet"
+            description="Add your first product or service."
+            icon={({ color, size }) => <Ionicons name="cube-outline" color={color} size={size} />}
+            primaryAction={{ label: 'Add Product', onPress: createProduct }}
+          />
+        </View>
+      ) : null;
+    }
+
+    return isEmptyInvoices ? (
       <EmptyState
         title="No invoices yet"
         description="Create your first invoice to see it here."
         primaryAction={{ label: 'New Invoice', onPress: createInvoice }}
       />
     ) : null;
-  }, [createInvoice, isEmpty]);
+  }, [createInvoice, createProduct, isEmptyInvoices, isEmptyProducts, recentMode]);
 
   if (isError) {
     return (
@@ -228,23 +307,23 @@ export const DashboardScreen = memo(function DashboardScreen() {
         {
           backgroundColor: theme.colors.background,
           paddingTop: insets.top,
-          paddingLeft: insets.left + 16,
-          paddingRight: insets.right + 16,
+          paddingLeft: insets.left + cStyleValues.spacing.lg,
+          paddingRight: insets.right + cStyleValues.spacing.lg,
         },
       ]}
     >
-      {/* Hide the route layout Stack header inside the view */}
       <Stack.Screen options={{ headerShown: false }} />
 
       <FlatList
-        data={data.recentInvoices}
+        data={listData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 24,
+          paddingBottom: insets.bottom + cStyleValues.spacing['2xl'],
+          gap: cStyleValues.spacing.md,
         }}
         refreshControl={
           <RefreshControl
@@ -253,6 +332,29 @@ export const DashboardScreen = memo(function DashboardScreen() {
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
           />
+        }
+      />
+
+      <Modal
+        visible={showRecentModePicker}
+        title="Show recent"
+        description="Choose what appears in this dashboard section."
+        onRequestClose={() => setShowRecentModePicker(false)}
+        footer={
+          <View style={[cStyle.g8]}>
+            {RECENT_MODE_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                label={option.label}
+                variant={option.value === recentMode ? 'primary' : 'outline'}
+                onPress={() => {
+                  setRecentMode(option.value);
+                  setShowRecentModePicker(false);
+                }}
+                accessibilityHint={`Shows ${option.label.toLowerCase()} on the dashboard`}
+              />
+            ))}
+          </View>
         }
       />
     </View>
