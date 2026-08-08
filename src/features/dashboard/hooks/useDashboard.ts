@@ -24,7 +24,7 @@ export function useDashboard() {
       createInvoice: () => router.push(ROUTES.createInvoice),
       createProduct: () => router.push(ROUTES.createProduct),
       openBusinessProfile: () => router.push(ROUTES.businessProfile),
-      openInvoice: (invoiceId: string) => router.push(ROUTES.invoiceDetails(invoiceId)),
+      openInvoice: (invoiceId: string) => router.push(ROUTES.invoicePreview(invoiceId)),
       openInvoices: () => router.push(ROUTES.invoices),
       openProduct: (productId: string) => router.push(ROUTES.editProduct(productId)),
       openProducts: () => router.push(ROUTES.products),

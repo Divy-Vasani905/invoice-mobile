@@ -1,5 +1,8 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { useLocalSearchParams } from 'expo-router';
+
+import { InvoiceFormScreen } from '@/features/invoice/screens/InvoiceFormScreen';
 
 export default function EditInvoiceRoute() {
-  return <ScreenPlaceholder name="Edit Invoice" />;
+  const { invoiceId } = useLocalSearchParams<{ invoiceId: string }>();
+  return <InvoiceFormScreen invoiceId={invoiceId} />;
 }

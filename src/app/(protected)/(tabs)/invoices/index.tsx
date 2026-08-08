@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { InvoicesScreen } from '@/features/invoice/screens/InvoicesScreen';
 
 export default function InvoicesListRoute() {
-  return <ScreenPlaceholder name="Invoices List" />;
+  return <InvoicesScreen />;
 }

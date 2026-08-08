@@ -1,4 +1,5 @@
 import type { Address, Money, OfflineEntity } from '@/types/models/common';
+import type { InvoiceItem } from '@/types/models/invoice-item';
 
 export enum InvoiceStatus {
   Draft = 'draft',
@@ -16,12 +17,16 @@ export interface InvoicePartySnapshot {
   phone?: string;
   address?: Address;
   taxId?: string;
+  /** Optional brand mark captured for document preview (business only). */
+  logoUri?: string;
+  companyName?: string;
 }
 
 export interface InvoiceTotals {
   subtotalAmount: Money;
   discountAmount: Money;
   taxAmount: Money;
+  roundOffAmount: Money;
   totalAmount: Money;
   paidAmount: Money;
   balanceAmount: Money;
@@ -43,6 +48,8 @@ export interface Invoice extends OfflineEntity {
   currencyCode: string;
   business: InvoicePartySnapshot;
   customer: InvoicePartySnapshot;
+  /** Line items snapshotted at save time for historical integrity. */
+  items: InvoiceItem[];
   totals: InvoiceTotals;
   notes?: string;
   terms?: string;

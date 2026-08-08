@@ -1,6 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 
+import { ROUTES } from '@/navigation';
 import { TabBarFab } from '@/navigation/components/tab-bar-fab';
 import { TAB_ITEMS } from '@/navigation/config/tab-options';
 import { useResponsiveNavigation } from '@/navigation/hooks/use-responsive-navigation';
@@ -36,6 +38,17 @@ export default function TabsLayout() {
                 />
               ),
             }}
+            listeners={
+              item.name === 'invoices'
+                ? {
+                    // Keep the Invoices tab on the list root (search + filters),
+                    // not a previously opened invoice detail inside the stack.
+                    tabPress: () => {
+                      router.navigate(ROUTES.invoices);
+                    },
+                  }
+                : undefined
+            }
           />
         ) : (
           <Tabs.Screen

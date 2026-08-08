@@ -1,5 +1,8 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { useLocalSearchParams } from 'expo-router';
+
+import { InvoicePreviewScreen } from '@/features/invoice/screens/InvoicePreviewScreen';
 
 export default function InvoicePreviewRoute() {
-  return <ScreenPlaceholder name="PDF Preview" />;
+  const { invoiceId } = useLocalSearchParams<{ invoiceId: string }>();
+  return <InvoicePreviewScreen invoiceId={invoiceId} />;
 }

@@ -119,14 +119,12 @@ export class ProductRepository {
     };
   }
 
-  /**
-   * Invoice line items are not persisted yet. This scans invoice payloads for
-   * any future/embedded product references so historical invoices stay safe.
-   */
+  /** Counts invoices that snapshot this product on a line item. */
   private countInvoiceReferences(productId: string): number {
     return this.invoices.getAll().reduce((count, invoice) => {
-      const serialized = JSON.stringify(invoice);
-      return serialized.includes(productId) ? count + 1 : count;
+      const items = Array.isArray(invoice.items) ? invoice.items : [];
+      const referenced = items.some((item) => item.product?.productId === productId);
+      return referenced ? count + 1 : count;
     }, 0);
   }
 
