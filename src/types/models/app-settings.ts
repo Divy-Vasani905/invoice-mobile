@@ -19,6 +19,8 @@ export interface InvoiceSettings {
   defaultPaymentTermsDays: number;
   defaultTaxRateBasisPoints: number;
   defaultProductUnit: ProductUnit;
+  /** Selected invoice PDF template id from the PDF feature registry. */
+  selectedPdfTemplateId?: string;
 }
 
 export interface AppSettings extends OfflineEntity {

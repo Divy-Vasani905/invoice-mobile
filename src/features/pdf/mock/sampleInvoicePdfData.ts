@@ -1,0 +1,76 @@
+import type { InvoicePdfDocumentModel } from '../types/pdf.types';
+
+/** Sample document used for template gallery previews (not user data). */
+export function createSampleInvoicePdfModel(): InvoicePdfDocumentModel {
+  return {
+    invoiceId: 'sample-invoice',
+    invoiceNumber: 'INV-000128',
+    statusLabel: 'PENDING',
+    issuedAtLabel: '08 Aug 2026',
+    dueAtLabel: '22 Aug 2026',
+    currencyCode: 'USD',
+    business: {
+      name: 'Northwind Studio',
+      email: 'billing@northwind.example',
+      phone: '+1 555 0100',
+      website: 'www.northwind.example',
+      taxId: 'TAX-998877',
+      addressLines: ['120 Market Street', 'Suite 4B', 'Austin, TX 78701', 'US'],
+    },
+    customer: {
+      name: 'Acme Retail Co.',
+      companyName: 'Acme Retail',
+      email: 'accounts@acme.example',
+      phone: '+1 555 0199',
+      taxId: 'CUST-4455',
+      addressLines: ['88 Commerce Ave', 'Chicago, IL 60601', 'US'],
+    },
+    items: [
+      {
+        id: '1',
+        position: 0,
+        description: 'Brand identity package',
+        details: 'Logo system, color palette, and usage guide',
+        quantityLabel: '1',
+        unitLabel: 'Project',
+        unitPriceLabel: '$1,200.00',
+        taxLabel: '8%',
+        lineTotalLabel: '$1,296.00',
+      },
+      {
+        id: '2',
+        position: 1,
+        description: 'Website landing page design',
+        details: 'Desktop and mobile layouts',
+        quantityLabel: '12',
+        unitLabel: 'Hour',
+        unitPriceLabel: '$85.00',
+        taxLabel: '8%',
+        discountLabel: '$50.00',
+        lineTotalLabel: '$1,047.60',
+      },
+      {
+        id: '3',
+        position: 2,
+        description: 'Social media templates',
+        quantityLabel: '5',
+        unitLabel: 'Piece',
+        unitPriceLabel: '$40.00',
+        taxLabel: '8%',
+        lineTotalLabel: '$216.00',
+      },
+    ],
+    totals: {
+      subtotalLabel: '$2,370.00',
+      discountLabel: '$50.00',
+      taxLabel: '$189.60',
+      roundOffLabel: '$0.00',
+      grandTotalLabel: '$2,559.60',
+      balanceLabel: '$2,559.60',
+    },
+    notes: 'Payment is due within 14 days. Thank you for your business.',
+    taxSummaryLabel: 'Tax $189.60',
+    footerText: 'Generated for Northwind Studio · INV-000128',
+    contentFingerprint: 'sample',
+  };
+}

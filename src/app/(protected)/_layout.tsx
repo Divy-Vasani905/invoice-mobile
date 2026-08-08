@@ -41,6 +41,10 @@ export default function ProtectedLayout() {
         options={modal.fullScreen({ title: 'Invoice Preview' })}
       />
       <Stack.Screen
+        name={ROUTE_NAMES.modals.invoicePdfPreview}
+        options={modal.fullScreen({ title: 'PDF Preview' })}
+      />
+      <Stack.Screen
         name={ROUTE_NAMES.modals.createCustomer}
         options={modal.modal({ title: 'Create Customer' })}
       />

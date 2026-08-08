@@ -406,6 +406,7 @@ export class InvoiceRepository {
         defaultPaymentTermsDays: DEFAULT_PAYMENT_TERMS_DAYS,
         defaultTaxRateBasisPoints: 0,
         defaultProductUnit: ProductUnit.Each,
+        selectedPdfTemplateId: 'classic',
       },
       createdAt: timestamp,
       updatedAt: timestamp,

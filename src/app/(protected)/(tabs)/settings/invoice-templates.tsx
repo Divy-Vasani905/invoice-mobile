@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { InvoiceTemplatesScreen } from '@/features/pdf/screens/InvoiceTemplatesScreen';
 
 export default function InvoiceTemplatesRoute() {
-  return <ScreenPlaceholder name="Invoice Templates" />;
+  return <InvoiceTemplatesScreen />;
 }

@@ -13,6 +13,9 @@ import { Loader } from '@/components/feedback/Loader';
 import { Modal } from '@/components/feedback/Modal';
 import { showToast } from '@/components/feedback/Toast';
 import { ThemedText } from '@/components/themed-text';
+import { PdfActionBar } from '@/features/pdf/components/PdfActionBar';
+import { useInvoicePdf } from '@/features/pdf/hooks/useInvoicePdf';
+import { PdfUserCancelledError } from '@/features/pdf/types/pdf.types';
 import { ROUTES } from '@/navigation';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
@@ -53,6 +56,7 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
     isError,
     refreshInvoices,
   } = useInvoices(invoiceId);
+  const { isGenerating, isSharing, isPrinting, share, print } = useInvoicePdf(invoiceId);
 
   const effectiveStatus = useMemo(
     () => (invoice == null ? null : resolveEffectiveStatus(invoice)),
@@ -64,6 +68,37 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
   const openEdit = useCallback(() => {
     router.push(ROUTES.editInvoice(invoiceId));
   }, [invoiceId, router]);
+
+  const openPdfPreview = useCallback(() => {
+    router.push(ROUTES.invoicePdfPreview(invoiceId));
+  }, [invoiceId, router]);
+
+  const handleSharePdf = useCallback(async () => {
+    try {
+      const result = await share();
+      if (result != null) {
+        showToast('success', { title: 'Invoice ready to share.' });
+      }
+    } catch (error) {
+      if (error instanceof PdfUserCancelledError) return;
+      showToast('error', {
+        title: 'Unable to share invoice PDF',
+        message: error instanceof Error ? error.message : 'Please try again.',
+      });
+    }
+  }, [share]);
+
+  const handlePrintPdf = useCallback(async () => {
+    try {
+      await print();
+    } catch (error) {
+      if (error instanceof PdfUserCancelledError) return;
+      showToast('error', {
+        title: 'Unable to print invoice PDF',
+        message: error instanceof Error ? error.message : 'Please try again.',
+      });
+    }
+  }, [print]);
 
   const handleDuplicate = useCallback(async () => {
     try {
@@ -323,6 +358,14 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
         </View>
 
         <View style={[cStyle.g12]}>
+          <PdfActionBar
+            isGenerating={isGenerating}
+            isSharing={isSharing}
+            isPrinting={isPrinting}
+            onGenerate={openPdfPreview}
+            onShare={handleSharePdf}
+            onPrint={handlePrintPdf}
+          />
           <Button
             label="Edit"
             leftIcon={({ color, size }) => (
@@ -330,6 +373,7 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
             )}
             onPress={openEdit}
             accessibilityLabel="Edit invoice"
+            disabled={isGenerating || isSharing || isPrinting}
           />
           {canMarkPaid ? (
             <Button
