@@ -23,16 +23,16 @@ const IOS_GOOGLE_SERVICES = './GoogleService-Info.plist';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'invoice_mobile',
-  slug: 'invoice_mobile',
+  name: 'Easy Invoice Maker',
+  slug: 'easy-invoice-maker',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'invoicemobile',
+  scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
     icon: './assets/expo.icon',
-    bundleIdentifier: 'com.invoice.mobile',
+    bundleIdentifier: 'com.divyvasani.easyinvoicemaker',
     supportsTablet: true,
     ...(existsSync(resolve(__dirname, IOS_GOOGLE_SERVICES))
       ? { googleServicesFile: IOS_GOOGLE_SERVICES }
@@ -42,7 +42,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: 'com.invoice.mobile',
+    package: 'com.divyvasani.easyinvoicemaker',
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
       foregroundImage: './assets/images/android-icon-foreground.png',

@@ -1,4 +1,4 @@
-package com.invoice.mobile
+package com.divyvasani.easyinvoicemaker
 
 import android.app.Application
 import android.content.res.Configuration

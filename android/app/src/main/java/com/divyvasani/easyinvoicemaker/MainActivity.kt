@@ -1,4 +1,4 @@
-package com.invoice.mobile
+package com.divyvasani.easyinvoicemaker
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

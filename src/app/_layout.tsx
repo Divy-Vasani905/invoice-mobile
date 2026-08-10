@@ -6,11 +6,13 @@ import { type PropsWithChildren, useEffect, useMemo } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastHost } from '@/components/feedback/Toast';
 import { createNavigationTheme } from '@/navigation/config/navigation-theme';
 import { HEADERLESS_SCREEN_OPTIONS, createHeaderOptions } from '@/navigation/config/screen-options';
 import { ROUTE_NAMES } from '@/navigation/constants/routes';
 import { useNavigationGuards } from '@/navigation/guards/use-navigation-guards';
+import { useScreenAnalytics } from '@/navigation/hooks/use-screen-analytics';
 import { useStackScreenOptions } from '@/navigation/hooks/use-screen-options';
 import { queryClient } from '@/providers/query-client';
 import { initializeProductionServices } from '@/services/bootstrap';
@@ -27,11 +29,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={cStyle.flex1}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <KeyboardProvider>
-            <NavigationChrome>
-              <RootNavigator />
-            </NavigationChrome>
-          </KeyboardProvider>
+          <ErrorBoundary>
+            <KeyboardProvider>
+              <NavigationChrome>
+                <RootNavigator />
+              </NavigationChrome>
+            </KeyboardProvider>
+          </ErrorBoundary>
         </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
@@ -42,6 +46,7 @@ export default function RootLayout() {
 function NavigationChrome({ children }: PropsWithChildren) {
   const { theme, isDark } = useTheme();
   const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
+  useScreenAnalytics();
 
   return (
     <NavigationThemeProvider value={navigationTheme}>

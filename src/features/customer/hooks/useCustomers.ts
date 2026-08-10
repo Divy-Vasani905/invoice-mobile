@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
+import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+
 import { customerFeatureRepository } from '../repositories/CustomerRepository';
 
 import type { CustomerFormValues } from '../types/customer.types';
@@ -25,7 +27,10 @@ export function useCustomers(customerId?: string) {
   const createMutation = useMutation({
     mutationFn: async (values: CustomerFormValues) =>
       customerFeatureRepository.createCustomer(values),
-    onSuccess: invalidateCustomers,
+    onSuccess: async () => {
+      await invalidateCustomers();
+      void AnalyticsService.logEvent(AnalyticsEvents.CustomerCreated);
+    },
   });
   const updateMutation = useMutation({
     mutationFn: async ({ id, values }: { id: string; values: CustomerFormValues }) =>

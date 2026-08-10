@@ -2,6 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
 import { INVOICES_QUERY_KEY } from '@/features/invoice/hooks/useInvoices';
+import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+import { CrashlyticsService } from '@/services/crashlytics';
 
 import { generateInvoicePdf } from '../services/pdf.service';
 import { printPdfFile } from '../services/pdfPrint.service';
@@ -62,6 +64,11 @@ export function useInvoicePdf(invoiceId?: string) {
           err instanceof PdfGenerationError
             ? err.message
             : 'Unable to create invoice PDF. Please try again.';
+        if (!(err instanceof PdfGenerationError)) {
+          CrashlyticsService.recordError(err, 'PdfGenerationUnexpected');
+        } else {
+          CrashlyticsService.log(`PDF generation failed: ${message}`);
+        }
         setError(message);
         throw err instanceof Error ? err : new PdfGenerationError(message);
       } finally {
@@ -87,6 +94,9 @@ export function useInvoicePdf(invoiceId?: string) {
       try {
         const file = await ensurePdf(options);
         await sharePdfFile(file.uri, `Share ${file.invoiceNumber}`);
+        void AnalyticsService.logEvent(AnalyticsEvents.InvoiceShared, {
+          template_id: file.templateId,
+        });
         return file;
       } catch (err) {
         if (err instanceof PdfUserCancelledError) return null;
@@ -94,6 +104,13 @@ export function useInvoicePdf(invoiceId?: string) {
           err instanceof PdfShareUnavailableError || err instanceof PdfGenerationError
             ? err.message
             : 'Unable to share invoice PDF. Please try again.';
+        if (
+          !(err instanceof PdfShareUnavailableError) &&
+          !(err instanceof PdfGenerationError) &&
+          !(err instanceof PdfUserCancelledError)
+        ) {
+          CrashlyticsService.recordError(err, 'PdfShareUnexpected');
+        }
         setError(message);
         throw err instanceof Error ? err : new Error(message);
       } finally {
@@ -117,6 +134,13 @@ export function useInvoicePdf(invoiceId?: string) {
           err instanceof PdfPrintUnavailableError || err instanceof PdfGenerationError
             ? err.message
             : 'Unable to print invoice PDF. Please try again.';
+        if (
+          !(err instanceof PdfPrintUnavailableError) &&
+          !(err instanceof PdfGenerationError) &&
+          !(err instanceof PdfUserCancelledError)
+        ) {
+          CrashlyticsService.recordError(err, 'PdfPrintUnexpected');
+        }
         setError(message);
         throw err instanceof Error ? err : new Error(message);
       } finally {

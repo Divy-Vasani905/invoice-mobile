@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 
+import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+
 import { businessFeatureRepository } from '../repositories/BusinessRepository';
 
 import type { BusinessFormValues } from '../types/business.types';
@@ -25,12 +27,22 @@ export function useBusiness() {
   const createMutation = useMutation({
     mutationFn: async (values: BusinessFormValues) =>
       businessFeatureRepository.createBusiness(values),
-    onSuccess: invalidateBusiness,
+    onSuccess: async () => {
+      await invalidateBusiness();
+      void AnalyticsService.logEvent(AnalyticsEvents.BusinessProfileUpdated, {
+        action: 'create',
+      });
+    },
   });
   const updateMutation = useMutation({
     mutationFn: async (values: BusinessFormValues) =>
       businessFeatureRepository.updateBusiness(values),
-    onSuccess: invalidateBusiness,
+    onSuccess: async () => {
+      await invalidateBusiness();
+      void AnalyticsService.logEvent(AnalyticsEvents.BusinessProfileUpdated, {
+        action: 'update',
+      });
+    },
   });
   const deleteMutation = useMutation({
     mutationFn: async () => businessFeatureRepository.deleteBusiness(),

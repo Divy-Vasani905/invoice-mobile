@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
+import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+
 import {
   InvoiceValidationError,
   MissingBusinessError,
@@ -33,7 +35,12 @@ export function useInvoices(invoiceId?: string) {
   const createMutation = useMutation({
     mutationFn: async ({ values, asDraft }: { values: InvoiceFormValues; asDraft: boolean }) =>
       invoiceFeatureRepository.createInvoice(values, asDraft),
-    onSuccess: invalidateRelated,
+    onSuccess: async (_invoice, variables) => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.InvoiceCreated, {
+        as_draft: variables.asDraft,
+      });
+    },
   });
   const updateMutation = useMutation({
     mutationFn: async ({
@@ -45,19 +52,39 @@ export function useInvoices(invoiceId?: string) {
       values: InvoiceFormValues;
       asDraft: boolean;
     }) => invoiceFeatureRepository.updateInvoice(id, values, asDraft),
-    onSuccess: invalidateRelated,
+    onSuccess: async (_invoice, variables) => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.InvoiceUpdated, {
+        as_draft: variables.asDraft,
+      });
+    },
   });
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => invoiceFeatureRepository.deleteInvoice(id),
-    onSuccess: invalidateRelated,
+    onSuccess: async () => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.InvoiceDeleted);
+    },
   });
   const duplicateMutation = useMutation({
     mutationFn: async (id: string) => invoiceFeatureRepository.duplicateInvoice(id),
-    onSuccess: invalidateRelated,
+    onSuccess: async () => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.InvoiceCreated, {
+        as_draft: true,
+        source: 'duplicate',
+      });
+    },
   });
   const markPaidMutation = useMutation({
     mutationFn: async (id: string) => invoiceFeatureRepository.markInvoicePaid(id),
-    onSuccess: invalidateRelated,
+    onSuccess: async () => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.InvoiceUpdated, {
+        as_draft: false,
+        marked_paid: true,
+      });
+    },
   });
 
   const invoices = useMemo(() => invoicesQuery.data ?? [], [invoicesQuery.data]);

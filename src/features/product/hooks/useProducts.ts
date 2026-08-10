@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
+import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+
 import { productFeatureRepository } from '../repositories/ProductRepository';
 
 import type { ProductFormValues } from '../types/product.types';
@@ -26,7 +28,10 @@ export function useProducts(productId?: string) {
 
   const createMutation = useMutation({
     mutationFn: async (values: ProductFormValues) => productFeatureRepository.createProduct(values),
-    onSuccess: invalidateRelated,
+    onSuccess: async () => {
+      await invalidateRelated();
+      void AnalyticsService.logEvent(AnalyticsEvents.ProductCreated);
+    },
   });
   const updateMutation = useMutation({
     mutationFn: async ({ id, values }: { id: string; values: ProductFormValues }) =>

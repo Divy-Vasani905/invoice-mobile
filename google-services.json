@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "invoice-mobile-placeholder",
-    "storage_bucket": "invoice-mobile-placeholder.appspot.com"
+    "project_number": "1040512268828",
+    "project_id": "easy-invoice-maker-6cf7b",
+    "storage_bucket": "easy-invoice-maker-6cf7b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:1040512268828:android:2afcdcb474b6769670bdd9",
         "android_client_info": {
-          "package_name": "com.invoice.mobile"
+          "package_name": "com.divyvasani.easyinvoicemaker"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "REPLACE_ME_FIREBASE_ANDROID_API_KEY"
+          "current_key": "AIzaSyCbyuFB1IgF_9WucfORo2OkeRb1OnVW2rA"
         }
       ],
       "services": {
