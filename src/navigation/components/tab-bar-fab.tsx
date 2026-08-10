@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type Href, useRouter } from 'expo-router';
+import { type Href } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
+import { useCreateInvoiceNavigation } from '@/features/credits';
 import { useResponsiveNavigation } from '@/navigation/hooks/use-responsive-navigation';
 import { cStyle, useTheme } from '@/theme';
 
@@ -19,8 +20,8 @@ export type TabBarFabProps = {
  * Pressing the button opens the create-invoice modal rather than focusing the
  * tab, which keeps the user's current tab intact behind the modal.
  */
-export function TabBarFab({ destination, label, testID }: TabBarFabProps) {
-  const router = useRouter();
+export function TabBarFab({ destination: _destination, label, testID }: TabBarFabProps) {
+  const { openCreateInvoice } = useCreateInvoiceNavigation();
   const { colors, elevation } = useTheme();
   const { fabSize, fabLift, tabIconSize } = useResponsiveNavigation();
 
@@ -30,7 +31,7 @@ export function TabBarFab({ destination, label, testID }: TabBarFabProps) {
         testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label}
-        onPress={() => router.push(destination)}
+        onPress={openCreateInvoice}
         style={({ pressed }) => [
           cStyle.itemCenter,
           cStyle.justifyCenter,

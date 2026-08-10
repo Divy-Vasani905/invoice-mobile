@@ -31,6 +31,14 @@ export {
   SubscriptionStatus,
 } from '@/types/models/subscription';
 
+export type {
+  InvoiceCreditBalance,
+  InvoiceCreditEntitlement,
+  InvoiceCreditPurchaseIntent,
+  InvoiceCreditSnapshot,
+  InvoiceCreditSource,
+} from '@/types/models/invoice-credits';
+
 export type { AppSettings, InvoiceSettings } from '@/types/models/app-settings';
 export { InvoiceNumberingMode, ThemePreference } from '@/types/models/app-settings';
 

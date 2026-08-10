@@ -10,6 +10,7 @@ import { SearchInput } from '@/components/form/SearchInput';
 import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import { Header } from '@/components/layout/Header';
 import { SegmentControl } from '@/components/layout/SegmentControl';
+import { useCreateInvoiceNavigation } from '@/features/credits';
 import { ROUTES } from '@/navigation';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
@@ -30,6 +31,7 @@ const FILTER_OPTIONS: { label: string; value: InvoiceListFilter }[] = [
 export const InvoicesScreen = memo(function InvoicesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const { openCreateInvoice } = useCreateInvoiceNavigation();
   const {
     invoices,
     searchQuery,
@@ -44,7 +46,6 @@ export const InvoicesScreen = memo(function InvoicesScreen() {
     isError,
   } = useInvoices();
 
-  const openCreateInvoice = useCallback(() => router.push(ROUTES.createInvoice), [router]);
   const openInvoice = useCallback(
     (invoiceId: string) => router.push(ROUTES.invoicePreview(invoiceId)),
     [router],

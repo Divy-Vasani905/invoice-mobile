@@ -64,6 +64,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
     isSaving,
     MissingBusinessError,
     InvoiceValidationError,
+    InsufficientInvoiceCreditsError,
   } = useInvoices(invoiceId);
 
   const {
@@ -196,6 +197,13 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
         });
         router.replace(ROUTES.invoicePreview(updated.id));
       } catch (error) {
+        if (error instanceof InsufficientInvoiceCreditsError) {
+          showToast('error', {
+            title: 'No invoices remaining',
+            message: error.message,
+          });
+          return;
+        }
         const message =
           error instanceof InvoiceValidationError || error instanceof MissingBusinessError
             ? error.message
@@ -206,7 +214,15 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
         });
       }
     },
-    [InvoiceValidationError, MissingBusinessError, createInvoice, invoiceId, router, updateInvoice],
+    [
+      InsufficientInvoiceCreditsError,
+      InvoiceValidationError,
+      MissingBusinessError,
+      createInvoice,
+      invoiceId,
+      router,
+      updateInvoice,
+    ],
   );
 
   const saveDraft = handleSubmit((values) => persist(values, true));

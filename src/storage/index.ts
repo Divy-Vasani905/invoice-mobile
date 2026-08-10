@@ -2,12 +2,14 @@ import { StorageKeys } from '@/storage/keys';
 import { storage } from '@/storage/mmkv';
 import { MmkvBusinessRepository } from '@/storage/repositories/business-repository';
 import { MmkvCustomerRepository } from '@/storage/repositories/customer-repository';
+import { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
 import { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository';
 import { MmkvProductRepository } from '@/storage/repositories/product-repository';
 import { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
 
 export type { BusinessRepository } from '@/storage/interfaces/business-repository';
 export type { CustomerRepository } from '@/storage/interfaces/customer-repository';
+export type { InvoiceCreditRepository } from '@/storage/interfaces/invoice-credit-repository';
 export type { InvoiceRepository } from '@/storage/interfaces/invoice-repository';
 export type { ProductRepository } from '@/storage/interfaces/product-repository';
 export type {
@@ -28,6 +30,7 @@ export {
 } from '@/storage/repositories/json-repository';
 export { MmkvBusinessRepository } from '@/storage/repositories/business-repository';
 export { MmkvCustomerRepository } from '@/storage/repositories/customer-repository';
+export { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
 export { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository';
 export { MmkvProductRepository } from '@/storage/repositories/product-repository';
 export { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
@@ -38,3 +41,7 @@ export const customerRepository = new MmkvCustomerRepository(storage, StorageKey
 export const productRepository = new MmkvProductRepository(storage, StorageKeys.products);
 export const invoiceRepository = new MmkvInvoiceRepository(storage, StorageKeys.invoices);
 export const settingsRepository = new MmkvSettingsRepository(storage, StorageKeys.settings);
+export const invoiceCreditRepository = new MmkvInvoiceCreditRepository(
+  storage,
+  StorageKeys.invoiceCredits,
+);

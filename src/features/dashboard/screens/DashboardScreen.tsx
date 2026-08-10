@@ -12,6 +12,7 @@ import { Modal } from '@/components/feedback/Modal';
 import { IconButton } from '@/components/IconButton';
 import { SummaryCard } from '@/components/layout/SummaryCard';
 import { ThemedText } from '@/components/themed-text';
+import { InvoiceCreditIndicator, InvoiceUsageModal, useInvoiceCredits } from '@/features/credits';
 import { ProductCard } from '@/features/product/components/ProductCard';
 import type { ProductListItem } from '@/features/product/types/product.types';
 import { cStyle, useTheme } from '@/theme';
@@ -32,6 +33,8 @@ export const DashboardScreen = memo(function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [showRecentModePicker, setShowRecentModePicker] = useState(false);
+  const [showUsageModal, setShowUsageModal] = useState(false);
+  const { snapshot, monthlyRemaining, isPremium, resetLabel } = useInvoiceCredits();
   const {
     data: queryData,
     recentMode,
@@ -105,7 +108,12 @@ export const DashboardScreen = memo(function DashboardScreen() {
             </ThemedText>
           </View>
 
-          <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g12]}>
+          <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g8]}>
+            <InvoiceCreditIndicator
+              remaining={monthlyRemaining}
+              isPremium={isPremium}
+              onPress={() => setShowUsageModal(true)}
+            />
             <IconButton
               icon={({ color, size }) => (
                 <Ionicons name="notifications-outline" color={color} size={size} />
@@ -226,6 +234,8 @@ export const DashboardScreen = memo(function DashboardScreen() {
     data.business.weeklyRevenue,
     formatCurrency,
     growthBadge,
+    isPremium,
+    monthlyRemaining,
     openBusinessProfile,
     openSeeAll,
     recentMode,
@@ -356,6 +366,13 @@ export const DashboardScreen = memo(function DashboardScreen() {
             ))}
           </View>
         }
+      />
+
+      <InvoiceUsageModal
+        visible={showUsageModal}
+        snapshot={snapshot}
+        resetLabel={resetLabel}
+        onRequestClose={() => setShowUsageModal(false)}
       />
     </View>
   );

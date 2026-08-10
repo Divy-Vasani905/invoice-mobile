@@ -55,6 +55,7 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
     isSaving,
     isError,
     refreshInvoices,
+    InsufficientInvoiceCreditsError,
   } = useInvoices(invoiceId);
   const { isGenerating, isSharing, isPrinting, share, print } = useInvoicePdf(invoiceId);
 
@@ -105,13 +106,20 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
       const duplicated = await duplicateInvoice(invoiceId);
       showToast('success', { title: 'Invoice duplicated' });
       router.replace(ROUTES.editInvoice(duplicated.id));
-    } catch {
+    } catch (error) {
+      if (error instanceof InsufficientInvoiceCreditsError) {
+        showToast('error', {
+          title: 'No invoices remaining',
+          message: error.message,
+        });
+        return;
+      }
       showToast('error', {
         title: 'Could not duplicate invoice',
         message: 'Please try again.',
       });
     }
-  }, [duplicateInvoice, invoiceId, router]);
+  }, [InsufficientInvoiceCreditsError, duplicateInvoice, invoiceId, router]);
 
   const handleDelete = useCallback(async () => {
     try {

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 
+import { useCreateInvoiceNavigation } from '@/features/credits';
 import { ROUTES } from '@/navigation';
 
 import { DashboardRepository } from '../repositories/DashboardRepository';
@@ -12,6 +13,7 @@ const dashboardRepository = new DashboardRepository();
 
 export function useDashboard() {
   const router = useRouter();
+  const { openCreateInvoice } = useCreateInvoiceNavigation();
   const [recentMode, setRecentMode] = useState<DashboardRecentMode>('invoices');
   const query = useQuery({
     queryKey: ['dashboard'],
@@ -21,7 +23,7 @@ export function useDashboard() {
 
   const actions = useMemo(
     () => ({
-      createInvoice: () => router.push(ROUTES.createInvoice),
+      createInvoice: openCreateInvoice,
       createProduct: () => router.push(ROUTES.createProduct),
       openBusinessProfile: () => router.push(ROUTES.businessProfile),
       openInvoice: (invoiceId: string) => router.push(ROUTES.invoicePreview(invoiceId)),
@@ -29,7 +31,7 @@ export function useDashboard() {
       openProduct: (productId: string) => router.push(ROUTES.editProduct(productId)),
       openProducts: () => router.push(ROUTES.products),
     }),
-    [router],
+    [openCreateInvoice, router],
   );
 
   const openSeeAll = useCallback(() => {

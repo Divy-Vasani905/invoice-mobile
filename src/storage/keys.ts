@@ -8,4 +8,5 @@ export const StorageKeys = {
   products: 'entities.products',
   invoices: 'entities.invoices',
   settings: 'entities.settings',
+  invoiceCredits: 'entities.invoiceCredits',
 } as const;

@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
+import {
+  INVOICE_CREDITS_QUERY_KEY,
+  InsufficientInvoiceCreditsError,
+  invoiceCreditFeatureRepository,
+} from '@/features/credits';
 import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
 
 import {
@@ -29,12 +34,17 @@ export function useInvoices(invoiceId?: string) {
       queryClient.invalidateQueries({ queryKey: INVOICES_QUERY_KEY }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['customers'] }),
+      queryClient.invalidateQueries({ queryKey: INVOICE_CREDITS_QUERY_KEY }),
     ]);
   }, [queryClient]);
 
   const createMutation = useMutation({
-    mutationFn: async ({ values, asDraft }: { values: InvoiceFormValues; asDraft: boolean }) =>
-      invoiceFeatureRepository.createInvoice(values, asDraft),
+    mutationFn: async ({ values, asDraft }: { values: InvoiceFormValues; asDraft: boolean }) => {
+      invoiceCreditFeatureRepository.assertCanCreateInvoice();
+      const created = invoiceFeatureRepository.createInvoice(values, asDraft);
+      invoiceCreditFeatureRepository.consumeCredit();
+      return created;
+    },
     onSuccess: async (_invoice, variables) => {
       await invalidateRelated();
       void AnalyticsService.logEvent(AnalyticsEvents.InvoiceCreated, {
@@ -67,7 +77,12 @@ export function useInvoices(invoiceId?: string) {
     },
   });
   const duplicateMutation = useMutation({
-    mutationFn: async (id: string) => invoiceFeatureRepository.duplicateInvoice(id),
+    mutationFn: async (id: string) => {
+      invoiceCreditFeatureRepository.assertCanCreateInvoice();
+      const duplicated = invoiceFeatureRepository.duplicateInvoice(id);
+      invoiceCreditFeatureRepository.consumeCredit();
+      return duplicated;
+    },
     onSuccess: async () => {
       await invalidateRelated();
       void AnalyticsService.logEvent(AnalyticsEvents.InvoiceCreated, {
@@ -136,5 +151,6 @@ export function useInvoices(invoiceId?: string) {
     isDuplicating: duplicateMutation.isPending,
     MissingBusinessError,
     InvoiceValidationError,
+    InsufficientInvoiceCreditsError,
   };
 }
