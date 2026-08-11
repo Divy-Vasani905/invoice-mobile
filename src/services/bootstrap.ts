@@ -1,5 +1,4 @@
-// Ads disabled for now — re-enable when AdMob is needed.
-// import { initializeAds } from '@/services/ads';
+import { initializeAds } from '@/services/ads';
 import { initializeFirebase } from '@/services/firebase';
 import { initializePurchases } from '@/services/purchases';
 
@@ -10,16 +9,15 @@ export type ProductionServicesStatus = {
 };
 
 /**
- * Bootstraps production SDKs (Firebase, RevenueCat).
- * AdMob init is commented out until ads are needed.
+ * Bootstraps production SDKs (Firebase, AdMob, RevenueCat).
  * Safe to call once at app start. Failures are isolated per service.
  */
 export async function initializeProductionServices(): Promise<ProductionServicesStatus> {
-  const [firebase, purchases] = await Promise.all([
+  const [firebase, ads, purchases] = await Promise.all([
     initializeFirebase(),
-    // initializeAds(),
+    initializeAds(),
     initializePurchases(),
   ]);
 
-  return { firebase, ads: false, purchases };
+  return { firebase, ads, purchases };
 }

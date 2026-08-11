@@ -13,7 +13,7 @@ export type InvoiceCreditIndicatorProps = {
 };
 
 /**
- * Compact dashboard header chip showing remaining free invoices (or PRO later).
+ * Compact dashboard header chip showing total available invoice credits (or PRO).
  */
 export const InvoiceCreditIndicator = memo(function InvoiceCreditIndicator({
   remaining,
@@ -61,7 +61,7 @@ export const InvoiceCreditIndicator = memo(function InvoiceCreditIndicator({
 
   const accessibilityLabel = isPremium
     ? 'Premium unlimited invoices'
-    : `${remaining} free invoices remaining this month`;
+    : `${remaining} invoice credits available`;
 
   return (
     <Pressable

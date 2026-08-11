@@ -42,7 +42,11 @@ export const Modal = memo(function Modal({
       animationType={animationType}
       onRequestClose={onRequestClose}
     >
-      <View
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss dialog"
+        disabled={!closable}
+        onPress={closable ? onRequestClose : undefined}
         style={{
           flex: 1,
           alignItems: 'center',
@@ -51,8 +55,9 @@ export const Modal = memo(function Modal({
           backgroundColor: theme.colors.scrim,
         }}
       >
-        <View
+        <Pressable
           accessibilityViewIsModal
+          onPress={() => undefined}
           style={[
             {
               width: '100%',
@@ -110,8 +115,8 @@ export const Modal = memo(function Modal({
               {primaryAction != null && <Button {...primaryAction} variant={primaryVariant} />}
             </View>
           )}
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </NativeModal>
   );
 });

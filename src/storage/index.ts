@@ -1,5 +1,6 @@
 import { StorageKeys } from '@/storage/keys';
 import { storage } from '@/storage/mmkv';
+import { MmkvAdMonetizationRepository } from '@/storage/repositories/ad-monetization-repository';
 import { MmkvBusinessRepository } from '@/storage/repositories/business-repository';
 import { MmkvCustomerRepository } from '@/storage/repositories/customer-repository';
 import { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
@@ -7,6 +8,7 @@ import { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository
 import { MmkvProductRepository } from '@/storage/repositories/product-repository';
 import { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
 
+export type { AdMonetizationRepository } from '@/storage/repositories/ad-monetization-repository';
 export type { BusinessRepository } from '@/storage/interfaces/business-repository';
 export type { CustomerRepository } from '@/storage/interfaces/customer-repository';
 export type { InvoiceCreditRepository } from '@/storage/interfaces/invoice-credit-repository';
@@ -28,6 +30,7 @@ export {
   JsonSingletonCrudRepository,
   JsonSingletonRepository,
 } from '@/storage/repositories/json-repository';
+export { MmkvAdMonetizationRepository } from '@/storage/repositories/ad-monetization-repository';
 export { MmkvBusinessRepository } from '@/storage/repositories/business-repository';
 export { MmkvCustomerRepository } from '@/storage/repositories/customer-repository';
 export { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
@@ -44,4 +47,8 @@ export const settingsRepository = new MmkvSettingsRepository(storage, StorageKey
 export const invoiceCreditRepository = new MmkvInvoiceCreditRepository(
   storage,
   StorageKeys.invoiceCredits,
+);
+export const adMonetizationRepository = new MmkvAdMonetizationRepository(
+  storage,
+  StorageKeys.adMonetization,
 );

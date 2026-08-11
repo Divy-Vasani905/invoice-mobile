@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Href } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
-import { useCreateInvoiceNavigation } from '@/features/credits';
+import { InvoiceUsageModal, useCreateInvoiceNavigation } from '@/features/credits';
 import { useResponsiveNavigation } from '@/navigation/hooks/use-responsive-navigation';
 import { cStyle, useTheme } from '@/theme';
 
@@ -21,7 +21,7 @@ export type TabBarFabProps = {
  * tab, which keeps the user's current tab intact behind the modal.
  */
 export function TabBarFab({ destination: _destination, label, testID }: TabBarFabProps) {
-  const { openCreateInvoice } = useCreateInvoiceNavigation();
+  const { openCreateInvoice, usageModalProps } = useCreateInvoiceNavigation();
   const { colors, elevation } = useTheme();
   const { fabSize, fabLift, tabIconSize } = useResponsiveNavigation();
 
@@ -49,6 +49,8 @@ export function TabBarFab({ destination: _destination, label, testID }: TabBarFa
       >
         <Ionicons name="add" size={tabIconSize} color={colors.onPrimary} />
       </Pressable>
+
+      <InvoiceUsageModal {...usageModalProps} />
     </View>
   );
 }

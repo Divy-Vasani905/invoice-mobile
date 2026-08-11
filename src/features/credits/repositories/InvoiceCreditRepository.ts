@@ -82,8 +82,8 @@ export class InvoiceCreditFeatureRepository {
   }
 
   /**
-   * Future monetization hook — adds purchased credits without touching free allowance.
-   * Not exposed in UI until payments are implemented.
+   * Grants purchased invoice credits (e.g. after a successful rewarded ad).
+   * Does not change the monthly free allowance.
    */
   public addPurchasedCredits(amount: number): InvoiceCreditSnapshot {
     const credits = Math.max(0, Math.floor(amount));
@@ -93,6 +93,11 @@ export class InvoiceCreditFeatureRepository {
       purchasedCredits: balance.purchasedCredits + credits,
     });
     return this.getSnapshot();
+  }
+
+  /** Convenience: grant exactly one purchased invoice credit. */
+  public grantRewardedInvoiceCredit(): InvoiceCreditSnapshot {
+    return this.addPurchasedCredits(1);
   }
 
   /**

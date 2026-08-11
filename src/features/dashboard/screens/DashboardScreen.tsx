@@ -33,8 +33,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [showRecentModePicker, setShowRecentModePicker] = useState(false);
-  const [showUsageModal, setShowUsageModal] = useState(false);
-  const { snapshot, monthlyRemaining, isPremium, resetLabel } = useInvoiceCredits();
+  const { totalAvailable, isPremium } = useInvoiceCredits();
   const {
     data: queryData,
     recentMode,
@@ -50,6 +49,8 @@ export const DashboardScreen = memo(function DashboardScreen() {
     openInvoice,
     openProduct,
     openSeeAll,
+    openUsageModal,
+    usageModalProps,
   } = useDashboard();
   const data = queryData ?? {
     business: {
@@ -110,9 +111,9 @@ export const DashboardScreen = memo(function DashboardScreen() {
 
           <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g8]}>
             <InvoiceCreditIndicator
-              remaining={monthlyRemaining}
+              remaining={totalAvailable}
               isPremium={isPremium}
-              onPress={() => setShowUsageModal(true)}
+              onPress={openUsageModal}
             />
             <IconButton
               icon={({ color, size }) => (
@@ -235,12 +236,13 @@ export const DashboardScreen = memo(function DashboardScreen() {
     formatCurrency,
     growthBadge,
     isPremium,
-    monthlyRemaining,
     openBusinessProfile,
     openSeeAll,
+    openUsageModal,
     recentMode,
     recentTitle,
     theme,
+    totalAvailable,
   ]);
 
   const renderItem = useCallback(
@@ -368,12 +370,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
         }
       />
 
-      <InvoiceUsageModal
-        visible={showUsageModal}
-        snapshot={snapshot}
-        resetLabel={resetLabel}
-        onRequestClose={() => setShowUsageModal(false)}
-      />
+      <InvoiceUsageModal {...usageModalProps} />
     </View>
   );
 });

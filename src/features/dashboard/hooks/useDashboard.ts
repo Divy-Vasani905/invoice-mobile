@@ -13,7 +13,7 @@ const dashboardRepository = new DashboardRepository();
 
 export function useDashboard() {
   const router = useRouter();
-  const { openCreateInvoice } = useCreateInvoiceNavigation();
+  const { openCreateInvoice, openUsageModal, usageModalProps } = useCreateInvoiceNavigation();
   const [recentMode, setRecentMode] = useState<DashboardRecentMode>('invoices');
   const query = useQuery({
     queryKey: ['dashboard'],
@@ -54,6 +54,8 @@ export function useDashboard() {
     error: query.error,
     refresh: useCallback(() => refetch(), [refetch]),
     openSeeAll,
+    openUsageModal,
+    usageModalProps,
     ...actions,
   };
 }

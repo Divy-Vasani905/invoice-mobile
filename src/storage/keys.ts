@@ -9,4 +9,5 @@ export const StorageKeys = {
   invoices: 'entities.invoices',
   settings: 'entities.settings',
   invoiceCredits: 'entities.invoiceCredits',
+  adMonetization: 'entities.adMonetization',
 } as const;

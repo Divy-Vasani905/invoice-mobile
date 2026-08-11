@@ -6,6 +6,7 @@ import {
   InsufficientInvoiceCreditsError,
   invoiceCreditFeatureRepository,
 } from '@/features/credits';
+import { AdMonetizationService } from '@/services/ads';
 import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
 
 import {
@@ -50,6 +51,8 @@ export function useInvoices(invoiceId?: string) {
       void AnalyticsService.logEvent(AnalyticsEvents.InvoiceCreated, {
         as_draft: variables.asDraft,
       });
+      // Non-blocking: interstitial every N successful generations.
+      AdMonetizationService.onSuccessfulInvoiceGenerated();
     },
   });
   const updateMutation = useMutation({
@@ -89,6 +92,7 @@ export function useInvoices(invoiceId?: string) {
         as_draft: true,
         source: 'duplicate',
       });
+      AdMonetizationService.onSuccessfulInvoiceGenerated();
     },
   });
   const markPaidMutation = useMutation({

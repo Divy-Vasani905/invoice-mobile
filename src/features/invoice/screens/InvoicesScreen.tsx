@@ -10,7 +10,7 @@ import { SearchInput } from '@/components/form/SearchInput';
 import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import { Header } from '@/components/layout/Header';
 import { SegmentControl } from '@/components/layout/SegmentControl';
-import { useCreateInvoiceNavigation } from '@/features/credits';
+import { InvoiceUsageModal, useCreateInvoiceNavigation } from '@/features/credits';
 import { ROUTES } from '@/navigation';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
@@ -31,7 +31,7 @@ const FILTER_OPTIONS: { label: string; value: InvoiceListFilter }[] = [
 export const InvoicesScreen = memo(function InvoicesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
-  const { openCreateInvoice } = useCreateInvoiceNavigation();
+  const { openCreateInvoice, usageModalProps } = useCreateInvoiceNavigation();
   const {
     invoices,
     searchQuery,
@@ -159,6 +159,8 @@ export const InvoicesScreen = memo(function InvoicesScreen() {
           />
         </View>
       )}
+
+      <InvoiceUsageModal {...usageModalProps} />
     </View>
   );
 });
