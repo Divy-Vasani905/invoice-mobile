@@ -10,4 +10,7 @@ export const StorageKeys = {
   settings: 'entities.settings',
   invoiceCredits: 'entities.invoiceCredits',
   adMonetization: 'entities.adMonetization',
+  remoteConfigGlobal: 'remoteConfig.globalConfig',
+  remoteConfigMonetization: 'remoteConfig.monetizationConfig',
+  appUpdateDismissedAt: 'appUpdate.updateDismissedAt',
 } as const;

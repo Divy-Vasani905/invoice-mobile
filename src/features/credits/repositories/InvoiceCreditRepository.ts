@@ -6,10 +6,10 @@ import type {
   InvoiceCreditSource,
 } from '@/types/models';
 
-import { MONTHLY_FREE_INVOICE_LIMIT } from '../constants';
 import {
   createDefaultCreditBalance,
   ensureCurrentPeriod,
+  getConfiguredFreeInvoicesPerMonth,
   resolveCreditSource,
   toCreditSnapshot,
   toEntitlement,
@@ -95,9 +95,9 @@ export class InvoiceCreditFeatureRepository {
     return this.getSnapshot();
   }
 
-  /** Convenience: grant exactly one purchased invoice credit. */
-  public grantRewardedInvoiceCredit(): InvoiceCreditSnapshot {
-    return this.addPurchasedCredits(1);
+  /** Grant purchased invoice credits after a successful rewarded ad (EARNED_REWARD). */
+  public grantRewardedInvoiceCredit(amount = 1): InvoiceCreditSnapshot {
+    return this.addPurchasedCredits(Math.max(1, Math.floor(amount)));
   }
 
   /**
@@ -123,7 +123,7 @@ export class InvoiceCreditFeatureRepository {
 
     const normalized = ensureCurrentPeriod({
       ...stored,
-      monthlyFreeLimit: stored.monthlyFreeLimit || MONTHLY_FREE_INVOICE_LIMIT,
+      monthlyFreeLimit: stored.monthlyFreeLimit || getConfiguredFreeInvoicesPerMonth(),
     });
 
     if (

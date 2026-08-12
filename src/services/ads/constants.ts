@@ -1,5 +1,10 @@
-/** Show interstitial after every N successful invoice generations. */
-export const INTERSTITIAL_EVERY_N_INVOICES = 6;
+import { DEFAULT_MONETIZATION_CONFIG } from '@/services/remote-config/constants';
 
-/** Max successful rewarded-ad credit grants per local calendar day. */
-export const REWARDED_DAILY_LIMIT = 10;
+/**
+ * Fallback defaults when Remote Config store is unavailable.
+ * Prefer `getMonetizationConfig()` from the Remote Config Zustand store at runtime.
+ */
+export const INTERSTITIAL_EVERY_N_INVOICES = DEFAULT_MONETIZATION_CONFIG.interstitialFrequency;
+
+/** @deprecated Prefer monetizationConfig.rewardedDailyLimit via Remote Config store. */
+export const REWARDED_DAILY_LIMIT = DEFAULT_MONETIZATION_CONFIG.rewardedDailyLimit;

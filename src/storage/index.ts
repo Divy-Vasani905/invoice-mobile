@@ -6,6 +6,7 @@ import { MmkvCustomerRepository } from '@/storage/repositories/customer-reposito
 import { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
 import { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository';
 import { MmkvProductRepository } from '@/storage/repositories/product-repository';
+import { MmkvRemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 import { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
 
 export type { AdMonetizationRepository } from '@/storage/repositories/ad-monetization-repository';
@@ -19,6 +20,7 @@ export type {
   SingletonCrudRepository,
   SingletonRepository,
 } from '@/storage/interfaces/repository';
+export type { RemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 export type { SettingsRepository } from '@/storage/interfaces/settings-repository';
 export type { StorageDriver } from '@/storage/interfaces/storage-driver';
 
@@ -36,6 +38,7 @@ export { MmkvCustomerRepository } from '@/storage/repositories/customer-reposito
 export { MmkvInvoiceCreditRepository } from '@/storage/repositories/invoice-credit-repository';
 export { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository';
 export { MmkvProductRepository } from '@/storage/repositories/product-repository';
+export { MmkvRemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 export { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
 
 /** Ready-to-use repository instances backed by the central MMKV store. */
@@ -51,4 +54,10 @@ export const invoiceCreditRepository = new MmkvInvoiceCreditRepository(
 export const adMonetizationRepository = new MmkvAdMonetizationRepository(
   storage,
   StorageKeys.adMonetization,
+);
+export const remoteConfigRepository = new MmkvRemoteConfigRepository(
+  storage,
+  StorageKeys.remoteConfigGlobal,
+  StorageKeys.remoteConfigMonetization,
+  StorageKeys.appUpdateDismissedAt,
 );

@@ -1,10 +1,20 @@
 import { MONTHLY_FREE_INVOICE_LIMIT } from '@/features/credits/constants';
+import { getMonetizationConfig } from '@/stores/remote-config/remote-config-store';
 import type {
   InvoiceCreditBalance,
   InvoiceCreditEntitlement,
   InvoiceCreditSnapshot,
   InvoiceCreditSource,
 } from '@/types/models';
+
+/** Resolves the configured free monthly invoice limit (Remote Config → defaults). */
+export function getConfiguredFreeInvoicesPerMonth(): number {
+  try {
+    return Math.max(0, Math.floor(getMonetizationConfig().freeInvoicesPerMonth));
+  } catch {
+    return MONTHLY_FREE_INVOICE_LIMIT;
+  }
+}
 
 /** Local calendar period key (`YYYY-MM`). */
 export function getCurrentPeriodKey(date = new Date()): string {
@@ -21,7 +31,7 @@ export function getNextResetAt(date = new Date()): string {
 export function createDefaultCreditBalance(date = new Date()): InvoiceCreditBalance {
   return {
     periodKey: getCurrentPeriodKey(date),
-    monthlyFreeLimit: MONTHLY_FREE_INVOICE_LIMIT,
+    monthlyFreeLimit: getConfiguredFreeInvoicesPerMonth(),
     monthlyUsed: 0,
     purchasedCredits: 0,
     isPremium: false,
@@ -36,16 +46,19 @@ export function clampNonNegative(value: number): number {
 /**
  * Rolls free usage into a new month when the stored period is stale.
  * Purchased credits and premium flag are preserved.
+ * Applies the current Remote Config free-invoice limit.
  */
 export function ensureCurrentPeriod(
   balance: InvoiceCreditBalance,
   date = new Date(),
 ): InvoiceCreditBalance {
   const periodKey = getCurrentPeriodKey(date);
+  const freeLimit = getConfiguredFreeInvoicesPerMonth() || MONTHLY_FREE_INVOICE_LIMIT;
+
   if (balance.periodKey === periodKey) {
     return {
       ...balance,
-      monthlyFreeLimit: clampNonNegative(balance.monthlyFreeLimit) || MONTHLY_FREE_INVOICE_LIMIT,
+      monthlyFreeLimit: freeLimit,
       monthlyUsed: clampNonNegative(balance.monthlyUsed),
       purchasedCredits: clampNonNegative(balance.purchasedCredits),
       isPremium: balance.isPremium === true,
@@ -55,7 +68,7 @@ export function ensureCurrentPeriod(
   return {
     ...balance,
     periodKey,
-    monthlyFreeLimit: clampNonNegative(balance.monthlyFreeLimit) || MONTHLY_FREE_INVOICE_LIMIT,
+    monthlyFreeLimit: freeLimit,
     monthlyUsed: 0,
     purchasedCredits: clampNonNegative(balance.purchasedCredits),
     isPremium: balance.isPremium === true,

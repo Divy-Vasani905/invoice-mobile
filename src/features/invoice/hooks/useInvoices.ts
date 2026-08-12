@@ -8,6 +8,8 @@ import {
 } from '@/features/credits';
 import { AdMonetizationService } from '@/services/ads';
 import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+import { isDeviceOnline } from '@/services/network/isDeviceOnline';
+import { getMonetizationConfig } from '@/stores/remote-config/remote-config-store';
 
 import {
   InvoiceValidationError,
@@ -18,6 +20,16 @@ import {
 import type { InvoiceFormValues, InvoiceListFilter } from '../types/invoice.types';
 
 export const INVOICES_QUERY_KEY = ['invoices'] as const;
+
+async function assertInvoiceGenerationAllowed(): Promise<void> {
+  if (!getMonetizationConfig().allowInvoiceGenerationWithoutInternet) {
+    const online = await isDeviceOnline();
+    if (!online) {
+      throw new Error('Internet connection is required to create an invoice.');
+    }
+  }
+  invoiceCreditFeatureRepository.assertCanCreateInvoice();
+}
 
 export function useInvoices(invoiceId?: string) {
   const queryClient = useQueryClient();
@@ -41,7 +53,7 @@ export function useInvoices(invoiceId?: string) {
 
   const createMutation = useMutation({
     mutationFn: async ({ values, asDraft }: { values: InvoiceFormValues; asDraft: boolean }) => {
-      invoiceCreditFeatureRepository.assertCanCreateInvoice();
+      await assertInvoiceGenerationAllowed();
       const created = invoiceFeatureRepository.createInvoice(values, asDraft);
       invoiceCreditFeatureRepository.consumeCredit();
       return created;
@@ -81,7 +93,7 @@ export function useInvoices(invoiceId?: string) {
   });
   const duplicateMutation = useMutation({
     mutationFn: async (id: string) => {
-      invoiceCreditFeatureRepository.assertCanCreateInvoice();
+      await assertInvoiceGenerationAllowed();
       const duplicated = invoiceFeatureRepository.duplicateInvoice(id);
       invoiceCreditFeatureRepository.consumeCredit();
       return duplicated;

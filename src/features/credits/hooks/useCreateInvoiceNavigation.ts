@@ -1,10 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 
+import { showToast } from '@/components/feedback/Toast';
 import { useInvoiceCredits } from '@/features/credits/hooks/useInvoiceCredits';
 import { useRewardedCreditOffer } from '@/features/credits/hooks/useRewardedCreditOffer';
 import { formatResetDate } from '@/features/credits/utils/credit.utils';
 import { ROUTES } from '@/navigation';
+import { isDeviceOnline } from '@/services/network/isDeviceOnline';
+import { getMonetizationConfig } from '@/stores/remote-config/remote-config-store';
 
 /**
  * Shared create-invoice navigation gate.
@@ -21,7 +24,19 @@ export function useCreateInvoiceNavigation() {
     setShowUsageModal(true);
   }, [rewarded]);
 
-  const openCreateInvoice = useCallback(() => {
+  const openCreateInvoice = useCallback(async () => {
+    const monetization = getMonetizationConfig();
+    if (!monetization.allowInvoiceGenerationWithoutInternet) {
+      const online = await isDeviceOnline();
+      if (!online) {
+        showToast('warning', {
+          title: 'Internet required',
+          message: 'Connect to the internet to create an invoice.',
+        });
+        return;
+      }
+    }
+
     const canCreate = snapshot == null || snapshot.hasAvailableCredits;
     if (!canCreate) {
       openUsageModal();
@@ -41,7 +56,6 @@ export function useCreateInvoiceNavigation() {
 
   const watchAdForCredit = useCallback(async () => {
     await rewarded.watchAdForCredit();
-    // Keep modal open so purchased / total / daily counts refresh in place.
   }, [rewarded]);
 
   const activeSnapshot = rewarded.snapshot ?? snapshot;

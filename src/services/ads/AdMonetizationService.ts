@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
 
 import { invoiceCreditFeatureRepository } from '@/features/credits';
-import { INTERSTITIAL_EVERY_N_INVOICES, REWARDED_DAILY_LIMIT } from '@/services/ads/constants';
 import { isAdsInitialized } from '@/services/ads/initializeAds';
 import { InterstitialAdService } from '@/services/ads/InterstitialAdService';
 import { RewardedAdService } from '@/services/ads/RewardedAdService';
@@ -10,7 +9,10 @@ import type {
   EarnRewardedCreditResult,
   RewardedDailyStatus,
 } from '@/services/ads/types';
+import { isDeviceOnline } from '@/services/network/isDeviceOnline';
+import { canShowInterstitialAds, canShowRewardedAds } from '@/services/remote-config/adEligibility';
 import { adMonetizationRepository, type AdMonetizationRepository } from '@/storage';
+import { getMonetizationConfig } from '@/stores/remote-config/remote-config-store';
 
 function getLocalDayKey(date = new Date()): string {
   const year = date.getFullYear();
@@ -31,9 +33,22 @@ function isAndroidAdMobSupported(): boolean {
   return Platform.OS === 'android';
 }
 
+function getRewardedDailyLimit(): number {
+  return getMonetizationConfig().rewardedDailyLimit;
+}
+
+function getInterstitialFrequency(): number {
+  return Math.max(1, getMonetizationConfig().interstitialFrequency);
+}
+
+function isPremiumUser(): boolean {
+  return invoiceCreditFeatureRepository.getSnapshot().isPremium === true;
+}
+
 /**
  * Bridges AdMob events to the invoice credit system.
  * Credits remain owned by InvoiceCreditFeatureRepository.
+ * Frequency/limits/flags come from Remote Config (Zustand).
  */
 class AdMonetizationServiceImpl {
   public constructor(
@@ -42,18 +57,20 @@ class AdMonetizationServiceImpl {
 
   public getRewardedDailyStatus(): RewardedDailyStatus {
     const state = this.readState();
-    const remainingToday = Math.max(0, REWARDED_DAILY_LIMIT - state.rewardedRewardsToday);
+    const dailyLimit = getRewardedDailyLimit();
+    const remainingToday = Math.max(0, dailyLimit - state.rewardedRewardsToday);
     return {
       dayKey: state.rewardedDayKey,
       rewardsEarnedToday: state.rewardedRewardsToday,
-      dailyLimit: REWARDED_DAILY_LIMIT,
+      dailyLimit,
       remainingToday,
-      hasReachedDailyLimit: state.rewardedRewardsToday >= REWARDED_DAILY_LIMIT,
+      hasReachedDailyLimit: state.rewardedRewardsToday >= dailyLimit,
     };
   }
 
   public canOfferRewardedAd(): boolean {
     if (!isAndroidAdMobSupported()) return false;
+    if (!canShowRewardedAds(isPremiumUser())) return false;
     if (invoiceCreditFeatureRepository.hasAvailableCredits()) return false;
     return !this.getRewardedDailyStatus().hasReachedDailyLimit;
   }
@@ -73,7 +90,10 @@ class AdMonetizationServiceImpl {
 
       if (!isAndroidAdMobSupported()) return;
       if (!isAdsInitialized()) return;
-      if (nextCount % INTERSTITIAL_EVERY_N_INVOICES !== 0) return;
+      if (!canShowInterstitialAds(isPremiumUser())) return;
+
+      const frequency = getInterstitialFrequency();
+      if (nextCount % frequency !== 0) return;
 
       void InterstitialAdService.show().catch((error: unknown) => {
         if (__DEV__) {
@@ -88,12 +108,24 @@ class AdMonetizationServiceImpl {
   }
 
   /**
-   * Shows a rewarded ad (user-initiated). Grants +1 purchased credit only after
+   * Shows a rewarded ad (user-initiated). Grants purchased credits only after
    * AdMob reports the reward was earned. Daily allowance increments only then.
    */
   public async earnCreditFromRewardedAd(): Promise<EarnRewardedCreditResult> {
     if (!isAndroidAdMobSupported()) {
       return 'unsupported';
+    }
+
+    if (!canShowRewardedAds(isPremiumUser())) {
+      return 'unavailable';
+    }
+
+    const monetization = getMonetizationConfig();
+    if (!monetization.allowRewardedOffline) {
+      const online = await isDeviceOnline();
+      if (!online) {
+        return 'unavailable';
+      }
     }
 
     if (invoiceCreditFeatureRepository.hasAvailableCredits()) {
@@ -137,21 +169,23 @@ class AdMonetizationServiceImpl {
 
     // Idempotent for this display: grant + count exactly once after earned callback.
     this.recordSuccessfulRewardedGrant();
-    invoiceCreditFeatureRepository.grantRewardedInvoiceCredit();
+    invoiceCreditFeatureRepository.grantRewardedInvoiceCredit(monetization.rewardedInvoiceCredit);
     return 'granted';
   }
 
   private recordSuccessfulRewardedGrant(): void {
     const state = this.readState();
+    const dailyLimit = getRewardedDailyLimit();
     this.storageRepo.update({
       ...state,
-      rewardedRewardsToday: Math.min(REWARDED_DAILY_LIMIT, state.rewardedRewardsToday + 1),
+      rewardedRewardsToday: Math.min(dailyLimit, state.rewardedRewardsToday + 1),
     });
   }
 
   private readState(): AdMonetizationState {
     const stored = this.storageRepo.get();
     const today = getLocalDayKey();
+    const dailyLimit = getRewardedDailyLimit();
 
     if (stored == null) {
       const defaults = createDefaultState();
@@ -176,7 +210,7 @@ class AdMonetizationServiceImpl {
       rewardedDayKey: stored.rewardedDayKey,
       rewardedRewardsToday: Math.max(
         0,
-        Math.min(REWARDED_DAILY_LIMIT, Math.floor(stored.rewardedRewardsToday || 0)),
+        Math.min(dailyLimit, Math.floor(stored.rewardedRewardsToday || 0)),
       ),
     };
   }

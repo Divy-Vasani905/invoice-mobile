@@ -4,7 +4,7 @@ import { Modal as NativeModal, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Loader } from '@/components/feedback/Loader';
-import { useTheme } from '@/theme';
+import { cStyle, useTheme } from '@/theme';
 
 import type { FeedbackModalProps } from './types';
 
@@ -72,7 +72,10 @@ export const Modal = memo(function Modal({
         >
           {(title != null || closable) && (
             <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: theme.inputs.layout.gap }}
+              style={[
+                cStyle.pv4,
+                { flexDirection: 'row', alignItems: 'center', gap: theme.inputs.layout.gap },
+              ]}
             >
               {title != null && (
                 <Text

@@ -8,6 +8,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastHost } from '@/components/feedback/Toast';
+import { AppConfigGates } from '@/features/app-update';
 import { createNavigationTheme } from '@/navigation/config/navigation-theme';
 import { HEADERLESS_SCREEN_OPTIONS, createHeaderOptions } from '@/navigation/config/screen-options';
 import { ROUTE_NAMES } from '@/navigation/constants/routes';
@@ -53,6 +54,7 @@ function NavigationChrome({ children }: PropsWithChildren) {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {children}
       <ToastHost />
+      <AppConfigGates />
     </NavigationThemeProvider>
   );
 }
