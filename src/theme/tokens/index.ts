@@ -10,11 +10,7 @@ export {
   type AvatarSizeToken,
   type AvatarSizeValue,
 } from '@/theme/tokens/avatarSizes';
-export {
-  elevation,
-  type ElevationStyle,
-  type ElevationToken,
-} from '@/theme/tokens/elevation';
+export { elevation, type ElevationStyle, type ElevationToken } from '@/theme/tokens/elevation';
 export {
   activeFontFamily,
   fontFamilies,

@@ -7,7 +7,6 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Loader } from '@/components/feedback/Loader';
 import { SearchInput } from '@/components/form/SearchInput';
-import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import { Header } from '@/components/layout/Header';
 import { ROUTES } from '@/navigation';
 import { cStyle, useTheme } from '@/theme';
@@ -58,9 +57,7 @@ export const ProductsScreen = memo(function ProductsScreen() {
 
   return (
     <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
-      <Header
-        title="Products & Services"
-      />
+      <Header title="Products & Services" />
       <FlatList
         data={products}
         renderItem={renderProduct}
@@ -87,9 +84,9 @@ export const ProductsScreen = memo(function ProductsScreen() {
               leftIcon={({ color, size }) => <Ionicons name="add" color={color} size={size} />}
               onPress={openCreateProduct}
               accessibilityHint="Opens the add product form"
-              style={{ 
+              style={{
                 paddingHorizontal: cStyleValues.spacing.xl,
-                marginTop: cStyleValues.spacing.lg
+                marginTop: cStyleValues.spacing.lg,
               }}
             />
           </>

@@ -8,11 +8,7 @@ import { opacity } from '@/theme/cStyle';
  */
 export type ElevationStyle = Pick<
   ViewStyle,
-  | 'elevation'
-  | 'shadowColor'
-  | 'shadowOffset'
-  | 'shadowOpacity'
-  | 'shadowRadius'
+  'elevation' | 'shadowColor' | 'shadowOffset' | 'shadowOpacity' | 'shadowRadius'
 >;
 
 const createElevation = (

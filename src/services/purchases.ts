@@ -14,10 +14,7 @@ export async function initializePurchases(): Promise<boolean> {
     return initialized;
   }
 
-  const apiKey =
-    Platform.OS === 'ios'
-      ? env.revenueCat.iosApiKey
-      : env.revenueCat.androidApiKey;
+  const apiKey = Platform.OS === 'ios' ? env.revenueCat.iosApiKey : env.revenueCat.androidApiKey;
 
   if (!apiKey) {
     if (__DEV__) {

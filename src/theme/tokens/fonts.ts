@@ -15,12 +15,7 @@ export const fontWeights = {
 export type FontWeightToken = keyof typeof fontWeights;
 export type FontWeightValue = (typeof fontWeights)[FontWeightToken];
 
-export type FontFamilyRole =
-  | 'regular'
-  | 'medium'
-  | 'semibold'
-  | 'bold'
-  | 'mono';
+export type FontFamilyRole = 'regular' | 'medium' | 'semibold' | 'bold' | 'mono';
 
 export type FontFamilyMap = Record<FontFamilyRole, string>;
 

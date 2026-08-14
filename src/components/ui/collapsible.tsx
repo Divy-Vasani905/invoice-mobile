@@ -5,8 +5,8 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { cStyle } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { cStyle } from '@/theme';
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,12 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   return (
     <ThemedView>
       <Pressable
-        style={({ pressed }) => [cStyle.flexRow, cStyle.itemCenter, cStyle.g8, pressed && cStyle.opacity70]}
+        style={({ pressed }) => [
+          cStyle.flexRow,
+          cStyle.itemCenter,
+          cStyle.g8,
+          pressed && cStyle.opacity70,
+        ]}
         onPress={() => setIsOpen((value) => !value)}
       >
         <ThemedView

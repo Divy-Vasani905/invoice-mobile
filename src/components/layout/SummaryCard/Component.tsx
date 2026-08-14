@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/layout/Card';
+import { ThemedText } from '@/components/themed-text';
 import { useTheme, cStyle } from '@/theme';
 
 import type { SummaryCardProps } from './types';
@@ -34,12 +34,7 @@ export const SummaryCard = memo(function SummaryCard({
       <View style={[cStyle.g8]}>
         {/* Header row: Title and Badge */}
         <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween]}>
-          <ThemedText
-            style={[
-              theme.typography.label,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
+          <ThemedText style={[theme.typography.label, { color: theme.colors.textSecondary }]}>
             {title}
           </ThemedText>
           {badge}
@@ -58,12 +53,7 @@ export const SummaryCard = memo(function SummaryCard({
 
         {/* Optional Subtitle */}
         {subtitle != null && (
-          <ThemedText
-            style={[
-              theme.typography.caption,
-              { color: theme.colors.textTertiary },
-            ]}
-          >
+          <ThemedText style={[theme.typography.caption, { color: theme.colors.textTertiary }]}>
             {subtitle}
           </ThemedText>
         )}

@@ -47,16 +47,9 @@ export const SectionHeader = memo(function SectionHeader({
           accessibilityRole="button"
           accessibilityLabel={accessibilityLabel ?? `${actionLabel} for ${title}`}
           hitSlop={8}
-          style={({ pressed }) => [
-            pressed && cStyle.opacity64,
-          ]}
+          style={({ pressed }) => [pressed && cStyle.opacity64]}
         >
-          <ThemedText
-            style={[
-              theme.typography.label,
-              { color: theme.colors.primary },
-            ]}
-          >
+          <ThemedText style={[theme.typography.label, { color: theme.colors.primary }]}>
             {actionLabel}
           </ThemedText>
         </Pressable>

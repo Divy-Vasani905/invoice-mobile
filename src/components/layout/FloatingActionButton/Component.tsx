@@ -1,10 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  type GestureResponderEvent,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { useTheme } from '@/theme';
 
@@ -35,10 +30,10 @@ export const FloatingActionButton = memo(function FloatingActionButton({
     if (pressLockedRef.current || disabled || externalLoading) {
       return;
     }
-  
+
     pressLockedRef.current = true;
     setInternalLoading(true);
-  
+
     try {
       await onPress?.();
     } finally {
@@ -61,15 +56,12 @@ export const FloatingActionButton = memo(function FloatingActionButton({
         minHeight: token.minHeight,
         minWidth: label == null ? token.minHeight : undefined,
         paddingHorizontal: token.paddingHorizontal,
-        borderRadius:
-          label == null ? token.minHeight / 2 : token.radius,
+        borderRadius: label == null ? token.minHeight / 2 : token.radius,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: token.gap,
-        backgroundColor: isDisabled
-          ? theme.colors.interactiveDisabled
-          : theme.colors.primary,
+        backgroundColor: isDisabled ? theme.colors.interactiveDisabled : theme.colors.primary,
         ...theme.elevation.lg,
       }}
     >
@@ -83,12 +75,7 @@ export const FloatingActionButton = memo(function FloatingActionButton({
       )}
 
       {label != null && (
-        <Text
-          style={[
-            theme.typography[token.typography],
-            { color: theme.colors.onPrimary },
-          ]}
-        >
+        <Text style={[theme.typography[token.typography], { color: theme.colors.onPrimary }]}>
           {label}
         </Text>
       )}

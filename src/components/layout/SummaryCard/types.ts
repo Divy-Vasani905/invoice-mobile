@@ -1,6 +1,7 @@
+import type { CardVariant } from '@/theme';
+
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import type { CardVariant } from '@/theme';
 
 export interface SummaryCardProps {
   /** The title of the summary metric (e.g., "Total Revenue") */

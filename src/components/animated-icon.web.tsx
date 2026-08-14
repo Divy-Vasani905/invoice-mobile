@@ -2,8 +2,9 @@ import { Image } from 'expo-image';
 import { View } from 'react-native';
 import Animated, { Keyframe, Easing } from 'react-native-reanimated';
 
-import classes from './animated-icon.module.css';
 import { cStyle } from '@/theme';
+
+import classes from './animated-icon.module.css';
 
 const DURATION = 300;
 

@@ -1,10 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  type GestureResponderEvent,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, type GestureResponderEvent } from 'react-native';
 
 import { useTheme } from '@/theme';
 
@@ -75,20 +70,12 @@ export const Button = memo(function Button({
       ]}
     >
       {({ pressed }) => {
-        const styles = getButtonStyles(
-          theme,
-          resolvedVariant,
-          size,
-          pressed,
-        );
+        const styles = getButtonStyles(theme, resolvedVariant, size, pressed);
 
         return (
           <>
             {loading ? (
-              <ActivityIndicator
-                color={styles.iconColor}
-                size={styles.iconSize}
-              />
+              <ActivityIndicator color={styles.iconColor} size={styles.iconSize} />
             ) : (
               leftIcon?.({
                 color: styles.iconColor,
@@ -96,9 +83,7 @@ export const Button = memo(function Button({
               })
             )}
 
-            <Text style={[styles.label, labelStyle]}>
-              {label}
-            </Text>
+            <Text style={[styles.label, labelStyle]}>{label}</Text>
 
             {!loading &&
               rightIcon?.({

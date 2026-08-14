@@ -68,33 +68,18 @@ export const ListItem = memo(function ListItem({
             gap: theme.inputs.layout.gap,
           }}
         >
-          <Text
-            style={[
-              theme.typography.bodyMedium,
-              { color: theme.colors.textPrimary },
-            ]}
-          >
+          <Text style={[theme.typography.bodyMedium, { color: theme.colors.textPrimary }]}>
             {title}
           </Text>
 
           {subtitle != null && (
-            <Text
-              style={[
-                theme.typography.helper,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
+            <Text style={[theme.typography.helper, { color: theme.colors.textSecondary }]}>
               {subtitle}
             </Text>
           )}
 
           {description != null && (
-            <Text
-              style={[
-                theme.typography.bodySmall,
-                { color: theme.colors.textTertiary },
-              ]}
-            >
+            <Text style={[theme.typography.bodySmall, { color: theme.colors.textTertiary }]}>
               {description}
             </Text>
           )}

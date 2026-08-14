@@ -9,13 +9,7 @@ import type { TypographyToken } from '@/theme/tokens/typography';
  */
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
-export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'outline'
-  | 'ghost'
-  | 'danger'
-  | 'disabled';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'disabled';
 
 export type ButtonColorValue = SemanticColorToken | 'transparent';
 
