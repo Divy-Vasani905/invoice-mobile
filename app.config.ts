@@ -30,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'easy-invoice-maker',
   version: '0.0.1',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/images/invoice-base-icon.png',
   scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
@@ -47,10 +47,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.divyvasani.easyinvoicemaker',
     adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundImage: './assets/images/android-icon-background.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png',
+      backgroundColor: '#F0FFFB',
+      foregroundImage: './assets/images/invoice-base-icon.png',
     },
     predictiveBackGestureEnabled: false,
     ...(existsSync(resolve(__dirname, ANDROID_GOOGLE_SERVICES))
@@ -87,9 +85,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#208AEF',
-        image: './assets/images/splash-icon.png',
-        imageWidth: 76,
+        backgroundColor: '#F0FFFB',
+        image: './assets/images/splash-logo.png',
+        imageWidth: 230,
       },
     ],
     [
