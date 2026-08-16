@@ -6,6 +6,7 @@ import { useInvoiceCredits } from '@/features/credits/hooks/useInvoiceCredits';
 import { useRewardedCreditOffer } from '@/features/credits/hooks/useRewardedCreditOffer';
 import { formatResetDate } from '@/features/credits/utils/credit.utils';
 import { ROUTES } from '@/navigation';
+import { RewardedAdService } from '@/services/ads/RewardedAdService';
 import { isDeviceOnline } from '@/services/network/isDeviceOnline';
 import { getMonetizationConfig } from '@/stores/remote-config/remote-config-store';
 
@@ -21,6 +22,7 @@ export function useCreateInvoiceNavigation() {
 
   const openUsageModal = useCallback(() => {
     rewarded.refreshDailyStatus();
+    RewardedAdService.preload();
     setShowUsageModal(true);
   }, [rewarded]);
 

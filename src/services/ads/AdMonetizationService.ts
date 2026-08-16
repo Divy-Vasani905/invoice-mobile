@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 
+import { admobConfig } from '@/constants/ads';
 import { invoiceCreditFeatureRepository } from '@/features/credits';
-import { isAdsInitialized } from '@/services/ads/initializeAds';
+import { INTERSTITIAL_SHOW_WAIT_MS, REWARDED_SHOW_WAIT_MS } from '@/services/ads/adLoadUtils';
+import { initializeAds, isAdsInitialized } from '@/services/ads/initializeAds';
 import { InterstitialAdService } from '@/services/ads/InterstitialAdService';
 import { RewardedAdService } from '@/services/ads/RewardedAdService';
 import type {
@@ -89,13 +91,22 @@ class AdMonetizationServiceImpl {
       });
 
       if (!isAndroidAdMobSupported()) return;
-      if (!isAdsInitialized()) return;
       if (!canShowInterstitialAds(isPremiumUser())) return;
+      if (admobConfig.INTERSTITIAL_AD_UNIT_ID.length === 0) return;
 
       const frequency = getInterstitialFrequency();
       if (nextCount % frequency !== 0) return;
 
-      void InterstitialAdService.show().catch((error: unknown) => {
+      void (async () => {
+        if (!isAdsInitialized()) {
+          const initialized = await initializeAds();
+          if (!initialized) return;
+        }
+
+        const ready = await InterstitialAdService.waitUntilReady(INTERSTITIAL_SHOW_WAIT_MS);
+        if (!ready) return;
+        await InterstitialAdService.show();
+      })().catch((error: unknown) => {
         if (__DEV__) {
           console.warn('[AdMob] Interstitial after invoice skipped:', error);
         }
@@ -117,14 +128,14 @@ class AdMonetizationServiceImpl {
     }
 
     if (!canShowRewardedAds(isPremiumUser())) {
-      return 'unavailable';
+      return 'disabled';
     }
 
     const monetization = getMonetizationConfig();
     if (!monetization.allowRewardedOffline) {
       const online = await isDeviceOnline();
       if (!online) {
-        return 'unavailable';
+        return 'offline';
       }
     }
 
@@ -137,12 +148,19 @@ class AdMonetizationServiceImpl {
       return 'daily_limit';
     }
 
-    if (!isAdsInitialized()) {
-      RewardedAdService.preload();
-      return 'unavailable';
+    if (admobConfig.REWARDED_AD_UNIT_ID.length === 0) {
+      return 'not_configured';
     }
 
-    if (!RewardedAdService.isReady()) {
+    if (!isAdsInitialized()) {
+      const initialized = await initializeAds();
+      if (!initialized) {
+        return 'unavailable';
+      }
+    }
+
+    const ready = await RewardedAdService.waitUntilReady(REWARDED_SHOW_WAIT_MS);
+    if (!ready) {
       RewardedAdService.preload();
       return 'unavailable';
     }

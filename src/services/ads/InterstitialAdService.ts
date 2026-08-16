@@ -7,6 +7,15 @@ import {
 
 import { admobConfig } from '@/constants/ads';
 
+import {
+  extractAdError,
+  INTERSTITIAL_SHOW_WAIT_MS,
+  logAdEvent,
+  nextRetryDelayMs,
+  notifyAdLoadWaiters,
+  type AdLoadWaiter,
+} from './adLoadUtils';
+
 type Unsubscribe = () => void;
 
 /**
@@ -18,20 +27,52 @@ class InterstitialAdServiceImpl {
   private loaded = false;
   private loading = false;
   private showing = false;
+  private retryAttempt = 0;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private loadWaiters: AdLoadWaiter[] = [];
   private unsubscribers: Unsubscribe[] = [];
 
   public isReady(): boolean {
     return this.loaded && this.ad != null;
   }
 
+  /**
+   * Resolves when an interstitial is loaded, or when `timeoutMs` elapses.
+   * Starts a preload if one is not already in flight.
+   */
+  public waitUntilReady(timeoutMs = INTERSTITIAL_SHOW_WAIT_MS): Promise<boolean> {
+    if (this.isReady()) return Promise.resolve(true);
+    if (admobConfig.INTERSTITIAL_AD_UNIT_ID.length === 0) return Promise.resolve(false);
+
+    this.preload();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (ready: boolean) => {
+        if (settled) return;
+        settled = true;
+        this.loadWaiters = this.loadWaiters.filter((waiter) => waiter !== onReady);
+        resolve(ready);
+      };
+
+      const onReady: AdLoadWaiter = (ready) => {
+        clearTimeout(timer);
+        finish(ready);
+      };
+      const timer = setTimeout(() => finish(this.isReady()), timeoutMs);
+      this.loadWaiters.push(onReady);
+    });
+  }
+
   public preload(): void {
     if (Platform.OS === 'web') return;
     if (admobConfig.INTERSTITIAL_AD_UNIT_ID.length === 0) {
-      if (__DEV__) console.warn('[AdMob] Interstitial unit ID is empty — skip preload');
+      logAdEvent('[AdMob] Interstitial unit ID is empty — skip preload');
       return;
     }
     if (this.loading || this.loaded || this.showing) return;
 
+    this.clearRetryTimer();
     this.detach();
     this.loading = true;
     this.loaded = false;
@@ -43,13 +84,17 @@ class InterstitialAdServiceImpl {
       ad.addAdEventListener(AdEventType.LOADED, () => {
         this.loading = false;
         this.loaded = true;
-        if (__DEV__) console.warn('[AdMob] Interstitial loaded');
+        this.retryAttempt = 0;
+        logAdEvent('[AdMob] Interstitial loaded');
+        this.flushWaiters(true);
       }),
       ad.addAdEventListener(AdEventType.ERROR, (error) => {
         this.loading = false;
         this.loaded = false;
         this.ad = null;
-        if (__DEV__) console.warn('[AdMob] Interstitial failed to load:', error);
+        const { code, message } = extractAdError(error);
+        logAdEvent(`[AdMob] Interstitial failed to load: ${code} ${message}`);
+        this.scheduleRetry();
       }),
       ad.addAdEventListener(AdEventType.CLOSED, () => {
         this.showing = false;
@@ -66,7 +111,9 @@ class InterstitialAdServiceImpl {
       this.loading = false;
       this.loaded = false;
       this.ad = null;
-      if (__DEV__) console.warn('[AdMob] Interstitial load threw:', error);
+      const { code, message } = extractAdError(error);
+      logAdEvent(`[AdMob] Interstitial load threw: ${code} ${message}`);
+      this.scheduleRetry();
     }
   }
 
@@ -79,7 +126,7 @@ class InterstitialAdServiceImpl {
 
     if (!this.isReady()) {
       this.preload();
-      if (__DEV__) console.warn('[AdMob] Interstitial not ready');
+      logAdEvent('[AdMob] Interstitial not ready');
       return false;
     }
 
@@ -92,10 +139,35 @@ class InterstitialAdServiceImpl {
       this.showing = false;
       this.loaded = false;
       this.ad = null;
-      if (__DEV__) console.warn('[AdMob] Interstitial show failed:', error);
+      const { code, message } = extractAdError(error);
+      logAdEvent(`[AdMob] Interstitial show failed: ${code} ${message}`);
       this.preload();
       return false;
     }
+  }
+
+  private scheduleRetry(): void {
+    if (this.retryTimer != null || this.loading || this.loaded || this.showing) return;
+
+    const userIsWaiting = this.loadWaiters.length > 0;
+    const delay = nextRetryDelayMs(this.retryAttempt, userIsWaiting);
+    this.retryAttempt += 1;
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      this.preload();
+    }, delay);
+  }
+
+  private flushWaiters(ready: boolean): void {
+    const waiters = this.loadWaiters;
+    this.loadWaiters = [];
+    notifyAdLoadWaiters(waiters, ready);
+  }
+
+  private clearRetryTimer(): void {
+    if (this.retryTimer == null) return;
+    clearTimeout(this.retryTimer);
+    this.retryTimer = null;
   }
 
   private detach(): void {

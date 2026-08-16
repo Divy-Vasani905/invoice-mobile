@@ -20,4 +20,12 @@ export type RewardedDailyStatus = {
 };
 
 export type EarnRewardedCreditResult =
-  'granted' | 'daily_limit' | 'not_earned' | 'unavailable' | 'has_credits' | 'unsupported';
+  | 'granted'
+  | 'daily_limit'
+  | 'not_earned'
+  | 'unavailable'
+  | 'has_credits'
+  | 'unsupported'
+  | 'offline'
+  | 'disabled'
+  | 'not_configured';

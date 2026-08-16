@@ -1,8 +1,10 @@
 import { Platform } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 
-import { logAdMobEnvironment } from '@/constants/ads';
+import { admobConfig, logAdMobEnvironment } from '@/constants/ads';
+import { CrashlyticsService } from '@/services/crashlytics';
 
+import { logAdEvent } from './adLoadUtils';
 import { InterstitialAdService } from './InterstitialAdService';
 import { RewardedAdService } from './RewardedAdService';
 
@@ -24,17 +26,29 @@ export async function initializeAds(): Promise<boolean> {
   initializing = (async () => {
     try {
       logAdMobEnvironment();
+      logAdEvent(
+        `[AdMob] Init start mode=${admobConfig.isUsingTestUnits ? 'TEST' : 'PRODUCTION'} units=${admobConfig.hasConfiguredUnits ? 'configured' : 'missing'}`,
+      );
+      void CrashlyticsService.setAttribute(
+        'admob_mode',
+        admobConfig.isUsingTestUnits ? 'TEST' : 'PRODUCTION',
+      );
+      void CrashlyticsService.setAttribute(
+        'admob_units_configured',
+        admobConfig.hasConfiguredUnits ? '1' : '0',
+      );
+
       await mobileAds().initialize();
       initialized = true;
+      logAdEvent('[AdMob] SDK initialized');
 
       InterstitialAdService.preload();
       RewardedAdService.preload();
 
       return true;
     } catch (error) {
-      if (__DEV__) {
-        console.warn('[AdMob] initialization skipped/failed:', error);
-      }
+      logAdEvent('[AdMob] initialization skipped/failed');
+      CrashlyticsService.recordError(error, 'AdMobInitializeFailed');
       return false;
     } finally {
       initializing = null;

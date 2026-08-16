@@ -28,7 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Easy Invoice Maker',
   slug: 'easy-invoice-maker',
-  version: '1.0.0',
+  version: '0.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'easyinvoicemaker',
@@ -73,6 +73,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-dev-client',
+    'expo-image',
     [
       'expo-image-picker',
       {

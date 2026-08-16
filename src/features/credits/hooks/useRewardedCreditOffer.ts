@@ -53,7 +53,25 @@ export function useRewardedCreditOffer() {
         case 'unavailable':
           showToast('warning', {
             title: 'Ad unavailable',
-            message: 'Please try again in a moment.',
+            message: 'No ad is ready right now. Please try again in a minute.',
+          });
+          break;
+        case 'offline':
+          showToast('warning', {
+            title: 'You are offline',
+            message: 'Connect to the internet to watch an ad.',
+          });
+          break;
+        case 'disabled':
+          showToast('info', {
+            title: 'Ads unavailable',
+            message: 'Rewarded ads are turned off right now.',
+          });
+          break;
+        case 'not_configured':
+          showToast('warning', {
+            title: 'Ad unavailable',
+            message: 'Ads are not configured in this build.',
           });
           break;
         case 'has_credits':
