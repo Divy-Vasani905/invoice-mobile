@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
@@ -18,6 +19,8 @@ import type { ProductListItem } from '@/features/product/types/product.types';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
+// import logo from '../../../../assets/images/icon-with-bg.png';
+import logoWithoutBg from '../../../../assets/images/invoice-base-icon.png';
 import { AnalyticsCard } from '../components/AnalyticsCard';
 import { InvoiceCard } from '../components/InvoiceCard';
 import { useDashboard } from '../hooks/useDashboard';
@@ -28,6 +31,8 @@ const RECENT_MODE_OPTIONS: { value: DashboardRecentMode; label: string }[] = [
   { value: 'invoices', label: 'Recent Invoices' },
   { value: 'products', label: 'Recent Products' },
 ];
+
+const DASHBOARD_INVOICE_CARD_LIMIT = 3;
 
 export const DashboardScreen = memo(function DashboardScreen() {
   const { theme } = useTheme();
@@ -88,15 +93,36 @@ export const DashboardScreen = memo(function DashboardScreen() {
 
   const recentTitle =
     RECENT_MODE_OPTIONS.find((option) => option.value === recentMode)?.label ?? 'Recent Invoices';
-  const listData = recentMode === 'products' ? data.recentProducts : data.recentInvoices;
+  const listData =
+    recentMode === 'products'
+      ? data.recentProducts
+      : data.recentInvoices.slice(0, DASHBOARD_INVOICE_CARD_LIMIT);
 
   const renderListHeader = useCallback(() => {
     return (
-      <View style={[cStyle.g16, cStyle.mb16]}>
+      <View style={[cStyle.g16, cStyle.mb4]}>
         <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.pv8]}>
           <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.g8]}>
-            <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.primarySubtle }]}>
-              <Ionicons name="receipt-sharp" size={22} color={theme.colors.primary} />
+            <View
+              style={[
+                cStyle.r16,
+                cStyle.size34,
+                cStyle.itemCenter,
+                cStyle.justifyCenter,
+                { overflow: 'hidden' },
+              ]}
+            >
+              <Image
+                source={logoWithoutBg}
+                style={[
+                  cStyle.size42,
+                  cStyle.itemCenter,
+                  cStyle.justifyCenter,
+                  { backgroundColor: 'white', borderRadius: 12, overflow: 'hidden' },
+                ]}
+                contentFit="cover"
+                accessibilityLabel="EasyInvoice Maker logo"
+              />
             </View>
             <ThemedText
               style={[
@@ -105,7 +131,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
                 { color: theme.colors.textPrimary, fontSize: 20 },
               ]}
             >
-              Invoicely
+              EasyInvoice Maker
             </ThemedText>
           </View>
 
@@ -132,7 +158,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
           </View>
         </View>
 
-        <View style={[cStyle.pv2]}>
+        <View>
           <ThemedText style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
             Good Morning,
           </ThemedText>
@@ -192,7 +218,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
           />
         </View>
 
-        <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.pv8]}>
+        <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.pt8]}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${recentTitle}. Change recent content`}

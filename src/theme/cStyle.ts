@@ -110,7 +110,7 @@ type SpacingPrefix =
   | 'g';
 type SpacingStyleKey = `${SpacingPrefix}${SpacingValue}`;
 
-type RadiusStyleValue = 0 | 4 | 8 | 12 | 16 | 20 | 24 | 32 | 40 | 9999;
+type RadiusStyleValue = 0 | 4 | 8 | 12 | 14 | 16 | 20 | 24 | 32 | 40 | 9999;
 type RadiusStyleKey = `r${RadiusStyleValue}`;
 
 type FontSize = 11 | 12 | 14 | 16 | 18 | 20 | 24 | 28 | 32 | 40 | 48;
@@ -142,21 +142,21 @@ type AtomicStyles = Record<SpacingStyleKey | RadiusStyleKey, SharedStyle> &
     z100: SharedStyle;
     z999: SharedStyle;
     z1000: SharedStyle;
-    itemStart: ViewStyle;
-    itemCenter: ViewStyle;
-    itemEnd: ViewStyle;
-    itemStretch: ViewStyle;
-    itemBaseline: ViewStyle;
+    itemStart: ViewStyle & ImageStyle;
+    itemCenter: ViewStyle & ImageStyle;
+    itemEnd: ViewStyle & ImageStyle;
+    itemStretch: ViewStyle & ImageStyle;
+    itemBaseline: ViewStyle & ImageStyle;
     selfStart: ViewStyle & ImageStyle;
     selfCenter: ViewStyle & ImageStyle;
     selfEnd: ViewStyle & ImageStyle;
     selfStretch: ViewStyle & ImageStyle;
-    justifyStart: ViewStyle;
-    justifyCenter: ViewStyle;
-    justifyEnd: ViewStyle;
-    justifyBetween: ViewStyle;
-    justifyAround: ViewStyle;
-    justifyEvenly: ViewStyle;
+    justifyStart: ViewStyle & ImageStyle;
+    justifyCenter: ViewStyle & ImageStyle;
+    justifyEnd: ViewStyle & ImageStyle;
+    justifyBetween: ViewStyle & ImageStyle;
+    justifyAround: ViewStyle & ImageStyle;
+    justifyEvenly: ViewStyle & ImageStyle;
     flex0: ViewStyle;
     flex1: ViewStyle;
     flex2: ViewStyle;
@@ -180,10 +180,20 @@ type AtomicStyles = Record<SpacingStyleKey | RadiusStyleKey, SharedStyle> &
     fontMedium: TextStyle;
     fontSemiBold: TextStyle;
     fontBold: TextStyle;
+    size16: ImageStyle;
+    size24: ImageStyle;
+    size32: ImageStyle;
+    size34: ImageStyle;
+    size40: ImageStyle;
+    size42: ImageStyle;
+    size48: ImageStyle;
+    size56: ImageStyle;
+    size64: ImageStyle;
+    sizeFull: ImageStyle;
   };
 
 const spacingValues = Object.values(spacing) as readonly SpacingValue[];
-const radiusValues = [0, 4, 8, 12, 16, 20, 24, 32, 40, 9999] as const;
+const radiusValues = [0, 4, 8, 12, 14, 16, 20, 24, 32, 40, 9999] as const;
 const fontSizes = [11, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48] as const;
 
 const spacingStyles = spacingValues.reduce<Partial<AtomicStyles>>((styles, value) => {
@@ -292,6 +302,17 @@ export const cStyle = {
   fontMedium: { fontWeight: '500' },
   fontSemiBold: { fontWeight: '600' },
   fontBold: { fontWeight: '700' },
+
+  size16: { width: 16, height: 16 },
+  size24: { width: 24, height: 24 },
+  size32: { width: 32, height: 32 },
+  size34: { width: 34, height: 34 },
+  size40: { width: 40, height: 40 },
+  size42: { width: 42, height: 42 },
+  size48: { width: 48, height: 48 },
+  size56: { width: 56, height: 56 },
+  size64: { width: 64, height: 64 },
+  sizeFull: { width: '100%', height: '100%' },
 } as AtomicStyles;
 
 export type { AtomicStyles };
