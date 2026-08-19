@@ -6,6 +6,7 @@ import {
   mapInvoiceStatus,
   resolveEffectiveStatus,
 } from '@/features/invoice/utils/invoice.utils';
+import { formatSavedTaxLabel } from '@/features/tax/utils/tax.utils';
 import type { Business, Invoice } from '@/types/models';
 
 import type {
@@ -59,6 +60,8 @@ export function buildContentFingerprint(invoice: Invoice, templateId: string): s
     invoice.totals.totalAmount.amountMinor,
     invoice.totals.taxAmount.amountMinor,
     invoice.totals.discountAmount.amountMinor,
+    invoice.appliedTax?.name ?? '',
+    String(invoice.appliedTax?.rateBasisPoints ?? ''),
     itemSignature,
   ].join('::');
 }
@@ -94,7 +97,8 @@ export function toPdfLineItems(invoice: Invoice): InvoicePdfLineItem[] {
       item.product.description !== description
         ? item.product.description
         : undefined;
-    const taxLabel = formatTaxRateLabel(item.taxRateBasisPoints);
+    const taxLabel =
+      invoice.appliedTax === undefined ? formatTaxRateLabel(item.taxRateBasisPoints) : undefined;
     const discountLabel =
       item.discountAmount.amountMinor > 0
         ? formatPdfMoney(item.discountAmount.amountMinor, invoice.currencyCode)
@@ -125,9 +129,11 @@ export function buildInvoicePdfDocumentModel(input: {
   const status = resolveEffectiveStatus(invoice);
   const taxAmount = invoice.totals.taxAmount.amountMinor;
   const taxSummaryLabel =
-    taxAmount > 0
-      ? `Tax ${formatPdfMoney(taxAmount, invoice.currencyCode)}`
-      : 'Tax included where applicable';
+    invoice.appliedTax != null
+      ? `${formatSavedTaxLabel(invoice.appliedTax)} ${formatPdfMoney(taxAmount, invoice.currencyCode)}`
+      : taxAmount > 0
+        ? `Tax ${formatPdfMoney(taxAmount, invoice.currencyCode)}`
+        : 'Tax included where applicable';
 
   return {
     invoiceId: invoice.id,

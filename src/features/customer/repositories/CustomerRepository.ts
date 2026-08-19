@@ -5,6 +5,7 @@ import {
   type CustomerRepository as CustomerStorageRepository,
   type InvoiceRepository,
 } from '@/storage';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { SyncStatus, type Customer } from '@/types/models';
 
 import { CustomerHasInvoicesError } from '../types/customer.types';
@@ -22,7 +23,7 @@ export class CustomerRepository {
 
   public getCustomers(): CustomerSummary[] {
     const invoices = this.invoices.getAll();
-    const currencyCode = businessRepository.get()?.defaultCurrencyCode ?? 'USD';
+    const currencyCode = getPreferredCurrencyCode();
 
     return this.customers
       .getAll()

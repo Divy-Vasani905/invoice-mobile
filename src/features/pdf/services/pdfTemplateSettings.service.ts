@@ -4,6 +4,10 @@ import {
   ProductUnit,
   SyncStatus,
   ThemePreference,
+  DEFAULT_INVOICE_NUMBER_PADDING,
+  DEFAULT_INVOICE_PREFIX,
+  DEFAULT_NEXT_INVOICE_NUMBER,
+  DEFAULT_TAX_CATALOG,
   type AppSettings,
 } from '@/types/models';
 
@@ -24,12 +28,14 @@ function createDefaultSettings(): AppSettings {
     locale: 'en',
     invoice: {
       invoiceNumberingMode: InvoiceNumberingMode.Automatic,
-      invoiceNumberPrefix: 'INV-',
-      nextInvoiceNumber: 1,
+      invoiceNumberPrefix: DEFAULT_INVOICE_PREFIX,
+      nextInvoiceNumber: DEFAULT_NEXT_INVOICE_NUMBER,
+      invoiceNumberPadding: DEFAULT_INVOICE_NUMBER_PADDING,
       defaultPaymentTermsDays: 30,
       defaultTaxRateBasisPoints: 0,
       defaultProductUnit: ProductUnit.Each,
       selectedPdfTemplateId: DEFAULT_PDF_TEMPLATE_ID,
+      taxCatalog: DEFAULT_TAX_CATALOG,
     },
     createdAt: timestamp,
     updatedAt: timestamp,

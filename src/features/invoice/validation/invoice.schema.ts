@@ -53,6 +53,10 @@ export const invoiceDraftSchema = z.object({
   notes: z.string(),
   items: z.array(draftItemSchema),
   status: z.nativeEnum(InvoiceStatus),
+  appliedTaxId: z.string(),
+  appliedTaxName: z.string(),
+  appliedTaxRateBasisPoints: z.number(),
+  useLegacyItemTax: z.boolean(),
 });
 
 export const invoiceFinalSchema = z
@@ -66,6 +70,10 @@ export const invoiceFinalSchema = z
     notes: z.string(),
     items: z.array(finalItemSchema).min(1, 'Add at least one item'),
     status: z.nativeEnum(InvoiceStatus),
+    appliedTaxId: z.string(),
+    appliedTaxName: z.string(),
+    appliedTaxRateBasisPoints: z.number(),
+    useLegacyItemTax: z.boolean(),
   })
   .superRefine((values, context) => {
     values.items.forEach((item, index) => {

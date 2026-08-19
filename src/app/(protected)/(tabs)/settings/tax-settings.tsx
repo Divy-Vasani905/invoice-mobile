@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { TaxSettingsScreen } from '@/features/tax/screens/TaxSettingsScreen';
 
 export default function TaxSettingsRoute() {
-  return <ScreenPlaceholder name="Tax Settings" />;
+  return <TaxSettingsScreen />;
 }

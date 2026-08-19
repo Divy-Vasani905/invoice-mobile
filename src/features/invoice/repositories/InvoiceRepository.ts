@@ -1,40 +1,51 @@
 import { businessFeatureRepository } from '@/features/business/repositories/BusinessRepository';
 import { customerFeatureRepository } from '@/features/customer/repositories/CustomerRepository';
+import { taxSettingsRepository } from '@/features/tax/repositories/TaxSettingsRepository';
+import { NO_TAX_SELECTION_ID } from '@/features/tax/utils/tax.utils';
 import {
   invoiceRepository,
   settingsRepository,
   type InvoiceRepository as InvoiceStorageRepository,
   type SettingsRepository,
 } from '@/storage';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import {
   InvoiceNumberingMode,
   InvoiceStatus,
   ProductUnit,
   SyncStatus,
   ThemePreference,
+  DEFAULT_INVOICE_NUMBER_PADDING,
+  DEFAULT_INVOICE_PREFIX,
+  DEFAULT_NEXT_INVOICE_NUMBER,
+  DEFAULT_TAX_CATALOG,
   type AppSettings,
   type Invoice,
 } from '@/types/models';
 
 import {
-  DEFAULT_INVOICE_PREFIX,
   DEFAULT_PAYMENT_TERMS_DAYS,
   addDaysToDateInput,
+  buildAppliedTaxSnapshot,
   buildInvoiceItems,
   buildTotalsFromCalculation,
   calculateFormTotals,
   compactOptional,
+  collectInvoiceNumbers,
   createLocalId,
   dateInputToIso,
   emptyCustomerSnapshot,
   emptyTotals,
   formatInvoiceDate,
+  formatInvoiceNumberPreview,
   formatMoney,
+  isFormattedInvoiceNumberTaken,
   mapInvoiceStatus,
   matchesListFilter,
   normalizeInvoice,
-  reserveInvoiceNumber,
+  peekNextAvailableInvoiceNumber,
   resolveEffectiveStatus,
+  resolveInvoiceNumberingConfig,
   toBadgeVariant,
   toBusinessSnapshot,
   toCustomerSnapshot,
@@ -65,8 +76,17 @@ export class InvoiceValidationError extends Error {
   }
 }
 
+export class DuplicateInvoiceNumberError extends InvoiceValidationError {
+  public constructor() {
+    super('That invoice number is already in use. A unique number will be assigned on save.');
+    this.name = 'DuplicateInvoiceNumberError';
+  }
+}
+
 /** Feature adapter over MMKV invoice storage with calculation + numbering. */
 export class InvoiceRepository {
+  private persistLock = false;
+
   public constructor(
     private readonly invoices: InvoiceStorageRepository = invoiceRepository,
     private readonly settings: SettingsRepository = settingsRepository,
@@ -109,12 +129,18 @@ export class InvoiceRepository {
     if (business == null) throw new MissingBusinessError();
 
     const settings = this.ensureSettings(business.id);
-    const reservation = reserveInvoiceNumber(settings);
+    const reservation = this.allocateNextNumber(settings);
     const issuedAt = todayDateInput();
     const dueAt = addDaysToDateInput(
       issuedAt,
       settings.invoice.defaultPaymentTermsDays ?? DEFAULT_PAYMENT_TERMS_DAYS,
     );
+
+    const catalog = taxSettingsRepository.getCatalog();
+    const defaultTax =
+      catalog.enabled && catalog.defaultTaxId != null
+        ? (catalog.taxes.find((tax) => tax.id === catalog.defaultTaxId) ?? null)
+        : null;
 
     return {
       invoiceNumber: reservation.invoiceNumber,
@@ -122,37 +148,44 @@ export class InvoiceRepository {
       customerName: '',
       issuedAt,
       dueAt,
-      currencyCode: business.defaultCurrencyCode,
+      currencyCode: getPreferredCurrencyCode(),
       notes: business.defaultInvoiceNotes ?? '',
       items: [],
       status: InvoiceStatus.Draft,
+      appliedTaxId: defaultTax == null ? NO_TAX_SELECTION_ID : defaultTax.id,
+      appliedTaxName: defaultTax?.name ?? '',
+      appliedTaxRateBasisPoints: defaultTax?.rateBasisPoints ?? 0,
+      useLegacyItemTax: false,
     };
   }
 
   public createInvoice(values: InvoiceFormValues, asDraft: boolean): Invoice {
-    const business = businessFeatureRepository.getActiveBusiness();
-    if (business == null) throw new MissingBusinessError();
+    return this.withPersistLock(() => {
+      const business = businessFeatureRepository.getActiveBusiness();
+      if (business == null) throw new MissingBusinessError();
 
-    const settings = this.ensureSettings(business.id);
-    const reservation = this.resolveNumberForCreate(values.invoiceNumber, settings);
-    const timestamp = new Date().toISOString();
-    const status = asDraft ? InvoiceStatus.Draft : InvoiceStatus.Issued;
-    const invoiceId = createLocalId('invoice');
-    const invoice = this.buildInvoiceRecord({
-      id: invoiceId,
-      values: { ...values, invoiceNumber: reservation.invoiceNumber },
-      businessId: business.id,
-      businessSnapshot: toBusinessSnapshot(business),
-      status,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      localRevision: 1,
-      asDraft,
+      const settings = this.ensureSettings(business.id);
+      const reservation = this.allocateNextNumber(settings);
+      const timestamp = new Date().toISOString();
+      const status = asDraft ? InvoiceStatus.Draft : InvoiceStatus.Issued;
+      const invoiceId = createLocalId('invoice');
+      const invoice = this.buildInvoiceRecord({
+        id: invoiceId,
+        values: { ...values, invoiceNumber: reservation.invoiceNumber },
+        businessId: business.id,
+        businessSnapshot: toBusinessSnapshot(business),
+        status,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        localRevision: 1,
+        asDraft,
+      });
+
+      this.assertInvoiceNumberUnused(invoice.invoiceNumber);
+      this.invoices.create(invoice);
+      this.persistNextInvoiceNumber(settings, reservation.nextNumber);
+      return invoice;
     });
-
-    this.invoices.create(invoice);
-    this.persistNextInvoiceNumber(settings, reservation.nextNumber);
-    return invoice;
   }
 
   public updateInvoice(invoiceId: string, values: InvoiceFormValues, asDraft: boolean): Invoice {
@@ -193,45 +226,49 @@ export class InvoiceRepository {
   }
 
   public duplicateInvoice(invoiceId: string): Invoice {
-    const source = this.requireInvoice(invoiceId);
-    const business = businessFeatureRepository.getActiveBusiness();
-    if (business == null) throw new MissingBusinessError();
+    return this.withPersistLock(() => {
+      const source = this.requireInvoice(invoiceId);
+      const business = businessFeatureRepository.getActiveBusiness();
+      if (business == null) throw new MissingBusinessError();
 
-    const settings = this.ensureSettings(business.id);
-    const reservation = reserveInvoiceNumber(settings);
-    const timestamp = new Date().toISOString();
-    const formValues = toInvoiceFormValues(source);
-    const invoiceIdNew = createLocalId('invoice');
+      const settings = this.ensureSettings(business.id);
+      const reservation = this.allocateNextNumber(settings);
+      const timestamp = new Date().toISOString();
+      const formValues = toInvoiceFormValues(source, taxSettingsRepository.getCatalog());
+      const invoiceIdNew = createLocalId('invoice');
 
-    const duplicatedItems = formValues.items.map((item) => ({
-      ...item,
-      id: createLocalId('item'),
-    }));
+      const duplicatedItems = formValues.items.map((item) => ({
+        ...item,
+        id: createLocalId('item'),
+      }));
 
-    const invoice = this.buildInvoiceRecord({
-      id: invoiceIdNew,
-      values: {
-        ...formValues,
-        invoiceNumber: reservation.invoiceNumber,
-        issuedAt: todayDateInput(),
-        dueAt: formValues.dueAt || addDaysToDateInput(todayDateInput(), DEFAULT_PAYMENT_TERMS_DAYS),
-        items: duplicatedItems,
+      const invoice = this.buildInvoiceRecord({
+        id: invoiceIdNew,
+        values: {
+          ...formValues,
+          invoiceNumber: reservation.invoiceNumber,
+          issuedAt: todayDateInput(),
+          dueAt:
+            formValues.dueAt || addDaysToDateInput(todayDateInput(), DEFAULT_PAYMENT_TERMS_DAYS),
+          items: duplicatedItems,
+          status: InvoiceStatus.Draft,
+          notes: formValues.notes,
+          currencyCode: source.currencyCode,
+        },
+        businessId: source.businessId,
+        businessSnapshot: source.business,
         status: InvoiceStatus.Draft,
-        notes: formValues.notes,
-        currencyCode: source.currencyCode,
-      },
-      businessId: source.businessId,
-      businessSnapshot: source.business,
-      status: InvoiceStatus.Draft,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      localRevision: 1,
-      asDraft: true,
-    });
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        localRevision: 1,
+        asDraft: true,
+      });
 
-    this.invoices.create(invoice);
-    this.persistNextInvoiceNumber(settings, reservation.nextNumber);
-    return invoice;
+      this.assertInvoiceNumberUnused(invoice.invoiceNumber);
+      this.invoices.create(invoice);
+      this.persistNextInvoiceNumber(settings, reservation.nextNumber);
+      return invoice;
+    });
   }
 
   public markInvoicePaid(invoiceId: string): Invoice {
@@ -282,6 +319,9 @@ export class InvoiceRepository {
   }): Invoice {
     const { values, asDraft } = input;
     const currencyCode = values.currencyCode;
+    const persistItems = values.useLegacyItemTax
+      ? values.items
+      : values.items.map((item) => ({ ...item, taxRate: '' }));
 
     if (!asDraft) {
       if (values.customerId.trim().length === 0) {
@@ -292,7 +332,7 @@ export class InvoiceRepository {
       }
     }
 
-    const calculation = calculateFormTotals(values.items, currencyCode);
+    const calculation = calculateFormTotals(persistItems, currencyCode, values);
     if (!asDraft && calculation == null) {
       throw new InvoiceValidationError(
         'Invoice totals could not be calculated. Check item values.',
@@ -302,10 +342,10 @@ export class InvoiceRepository {
     // Drafts may include incomplete lines; persist them with best-effort totals.
     const calculableItems =
       calculation == null
-        ? values.items.filter((item) => calculateFormTotals([item], currencyCode) != null)
-        : values.items;
+        ? persistItems.filter((item) => calculateFormTotals([item], currencyCode, values) != null)
+        : persistItems;
     const safeCalculation = calculation ??
-      calculateFormTotals(calculableItems, currencyCode) ?? {
+      calculateFormTotals(calculableItems, currencyCode, values) ?? {
         currencyPrecision: 2,
         subtotalMinor: 0,
         discountTotalMinor: 0,
@@ -328,7 +368,7 @@ export class InvoiceRepository {
 
     const items = buildInvoiceItems(
       input.id,
-      values.items,
+      persistItems,
       currencyCode,
       safeCalculation,
       input.updatedAt,
@@ -362,7 +402,8 @@ export class InvoiceRepository {
       business: input.businessSnapshot,
       customer: customer != null ? toCustomerSnapshot(customer) : emptyCustomerSnapshot(),
       items,
-      totals: values.items.length === 0 ? emptyTotals(currencyCode) : totals,
+      totals: persistItems.length === 0 ? emptyTotals(currencyCode) : totals,
+      appliedTax: buildAppliedTaxSnapshot(values, safeCalculation.taxTotalMinor, currencyCode),
       notes: compactOptional(values.notes),
       createdAt: input.createdAt,
       updatedAt: input.updatedAt,
@@ -371,22 +412,115 @@ export class InvoiceRepository {
     };
   }
 
-  private resolveNumberForCreate(
-    preferredNumber: string,
-    settings: AppSettings,
-  ): { invoiceNumber: string; nextNumber: number } {
-    const reservation = reserveInvoiceNumber(settings);
-    const preferred = preferredNumber.trim();
-    if (preferred.length > 0 && preferred === reservation.invoiceNumber) {
-      return reservation;
+  public getInvoiceNumberFormat(): {
+    prefix: string;
+    nextNumber: number;
+    padding: number;
+    preview: string;
+    configuredNumberTaken: boolean;
+    nextAvailableNumber: string;
+  } {
+    const settings = this.settings.get();
+    const config = resolveInvoiceNumberingConfig(settings);
+    const existingNumbers = this.collectExistingNumbers();
+    let preview = `${config.prefix}${String(config.nextNumber)}`;
+    try {
+      preview = formatInvoiceNumberPreview(config);
+    } catch {
+      // Invalid stored values fall back to an unpadded preview string.
     }
-    if (
-      preferred.length > 0 &&
-      !this.invoices.getAll().some((inv) => inv.invoiceNumber === preferred)
-    ) {
-      return { invoiceNumber: preferred, nextNumber: reservation.nextNumber };
+
+    let nextAvailableNumber = preview;
+    try {
+      nextAvailableNumber = peekNextAvailableInvoiceNumber(settings, existingNumbers).invoiceNumber;
+    } catch {
+      nextAvailableNumber = preview;
     }
-    return reservation;
+    return {
+      prefix: config.prefix,
+      nextNumber: config.nextNumber,
+      padding: config.paddingLength,
+      preview,
+      configuredNumberTaken: isFormattedInvoiceNumberTaken(settings, existingNumbers),
+      nextAvailableNumber,
+    };
+  }
+
+  public updateInvoiceNumberFormat(input: {
+    prefix: string;
+    nextNumber: number;
+    padding: number;
+  }): {
+    preview: string;
+    configuredNumberTaken: boolean;
+    nextAvailableNumber: string;
+  } {
+    const settings = this.ensureSettings(this.resolveBusinessId());
+    const prefix = input.prefix.trim();
+    const updated: AppSettings = {
+      ...settings,
+      invoice: {
+        ...settings.invoice,
+        invoiceNumberingMode: InvoiceNumberingMode.Automatic,
+        invoiceNumberPrefix: prefix,
+        nextInvoiceNumber: input.nextNumber,
+        invoiceNumberPadding: input.padding,
+      },
+      updatedAt: new Date().toISOString(),
+      localRevision: settings.localRevision + 1,
+      syncStatus: SyncStatus.Pending,
+    };
+    this.settings.update(updated);
+    return this.getInvoiceNumberFormat();
+  }
+
+  /**
+   * Recalculates `nextInvoiceNumber` so the next create cannot collide with
+   * imported or otherwise inserted invoice numbers. Persist the returned
+   * sequence as the next number to assign (not sequence + 1).
+   */
+  public syncNumberingAfterImport(): string {
+    const settings = this.ensureSettings(this.resolveBusinessId());
+    const reservation = this.allocateNextNumber(settings);
+    this.persistNextInvoiceNumber(settings, reservation.sequenceNumber);
+    return reservation.invoiceNumber;
+  }
+
+  private withPersistLock<T>(operation: () => T): T {
+    if (this.persistLock) {
+      throw new InvoiceValidationError('Please wait for the previous invoice to finish saving.');
+    }
+    this.persistLock = true;
+    try {
+      return operation();
+    } finally {
+      this.persistLock = false;
+    }
+  }
+
+  private collectExistingNumbers(): ReadonlySet<string> {
+    return collectInvoiceNumbers(this.invoices.getAll());
+  }
+
+  private allocateNextNumber(settings: AppSettings) {
+    try {
+      return peekNextAvailableInvoiceNumber(settings, this.collectExistingNumbers());
+    } catch (error) {
+      if (error instanceof RangeError) {
+        throw new InvoiceValidationError(error.message);
+      }
+      throw error;
+    }
+  }
+
+  private assertInvoiceNumberUnused(invoiceNumber: string): void {
+    if (this.invoices.getAll().some((invoice) => invoice.invoiceNumber === invoiceNumber)) {
+      throw new DuplicateInvoiceNumberError();
+    }
+  }
+
+  private resolveBusinessId(): string {
+    return businessFeatureRepository.getActiveBusiness()?.id ?? 'local-business';
   }
 
   private ensureSettings(businessId: string): AppSettings {
@@ -402,11 +536,13 @@ export class InvoiceRepository {
       invoice: {
         invoiceNumberingMode: InvoiceNumberingMode.Automatic,
         invoiceNumberPrefix: DEFAULT_INVOICE_PREFIX,
-        nextInvoiceNumber: 1,
+        nextInvoiceNumber: DEFAULT_NEXT_INVOICE_NUMBER,
+        invoiceNumberPadding: DEFAULT_INVOICE_NUMBER_PADDING,
         defaultPaymentTermsDays: DEFAULT_PAYMENT_TERMS_DAYS,
         defaultTaxRateBasisPoints: 0,
         defaultProductUnit: ProductUnit.Each,
         selectedPdfTemplateId: 'classic',
+        taxCatalog: DEFAULT_TAX_CATALOG,
       },
       createdAt: timestamp,
       updatedAt: timestamp,

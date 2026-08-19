@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import { AnalyticsEvents, AnalyticsService } from '@/services/analytics';
+import { useUserPreferencesStore } from '@/stores/user-preferences';
 
 import { productFeatureRepository } from '../repositories/ProductRepository';
 
@@ -66,7 +67,14 @@ export function useProducts(productId?: string) {
           productFeatureRepository.getProductById(productId)),
     [productId, products],
   );
-  const defaultFormValues = useMemo(() => productFeatureRepository.getDefaultFormValues(), []);
+  const preferredCurrencyCode = useUserPreferencesStore((state) => state.currencyCode);
+  const defaultFormValues = useMemo(
+    () => ({
+      ...productFeatureRepository.getDefaultFormValues(),
+      currencyCode: preferredCurrencyCode ?? 'USD',
+    }),
+    [preferredCurrencyCode],
+  );
 
   return {
     products: filteredProducts,

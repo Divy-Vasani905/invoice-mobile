@@ -1,5 +1,6 @@
 import { productFeatureRepository } from '@/features/product/repositories/ProductRepository';
 import { businessRepository, invoiceRepository } from '@/storage';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { InvoiceStatus, type Invoice as DomainInvoice } from '@/types/models';
 
 import type {
@@ -15,7 +16,7 @@ export class DashboardRepository {
   public get(): DashboardData {
     const business = businessRepository.get();
     const invoices = invoiceRepository.getAll();
-    const currencyCode = business?.defaultCurrencyCode ?? 'USD';
+    const currencyCode = getPreferredCurrencyCode();
     const now = new Date();
     const monthlyRevenue = sumRevenue(invoices, (date) => sameMonth(date, now));
     const weeklyRevenue = sumRevenue(invoices, (date) => withinDays(date, now, 7));

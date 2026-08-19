@@ -1,4 +1,12 @@
+import { InteractionManager, Keyboard } from 'react-native';
+
 import { CrashlyticsService } from '@/services/crashlytics';
+
+/** Android immersive fullscreen so ads are not inset, clipped, or larger than the display. */
+export const FULLSCREEN_AD_SHOW_OPTIONS = { immersiveModeEnabled: true } as const;
+
+/** Time for RN Modal / stack / keyboard to finish before presenting a fullscreen ad. */
+export const FULLSCREEN_AD_OVERLAY_SETTLE_MS = 400;
 
 /** How long Watch Ad waits for a production fill before giving up. */
 export const REWARDED_SHOW_WAIT_MS = 20_000;
@@ -46,6 +54,21 @@ export function nextRetryDelayMs(attempt: number, userIsWaiting: boolean): numbe
   const lastIndex = AD_BACKGROUND_RETRY_DELAYS_MS.length - 1;
   const index = Math.min(Math.max(0, attempt), lastIndex);
   return AD_BACKGROUND_RETRY_DELAYS_MS[index] ?? 60_000;
+}
+
+/**
+ * Fullscreen ads must not present over a dialog, keyboard, or in-flight navigation.
+ * Otherwise AdMob can render inside the current window (clipped) or overflow the display.
+ */
+export function waitForFullscreenAdSlot(
+  settleMs = FULLSCREEN_AD_OVERLAY_SETTLE_MS,
+): Promise<void> {
+  Keyboard.dismiss();
+  return new Promise((resolve) => {
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(resolve, settleMs);
+    });
+  });
 }
 
 export function notifyAdLoadWaiters(waiters: AdLoadWaiter[], ready: boolean): void {

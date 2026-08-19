@@ -8,6 +8,7 @@ export const StorageKeys = {
   products: 'entities.products',
   invoices: 'entities.invoices',
   settings: 'entities.settings',
+  userPreferences: 'preferences.user',
   invoiceCredits: 'entities.invoiceCredits',
   adMonetization: 'entities.adMonetization',
   remoteConfigGlobal: 'remoteConfig.globalConfig',

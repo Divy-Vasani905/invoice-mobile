@@ -12,6 +12,7 @@ export interface InvoiceSummaryProps {
   subtotalMinor: number;
   discountMinor: number;
   taxMinor: number;
+  taxLabel?: string;
   roundOffMinor: number;
   grandTotalMinor: number;
 }
@@ -21,6 +22,7 @@ export const InvoiceSummary = memo(function InvoiceSummary({
   subtotalMinor,
   discountMinor,
   taxMinor,
+  taxLabel = 'Tax',
   roundOffMinor,
   grandTotalMinor,
 }: InvoiceSummaryProps) {
@@ -29,7 +31,7 @@ export const InvoiceSummary = memo(function InvoiceSummary({
   const rows: { label: string; value: string; emphasize?: boolean }[] = [
     { label: 'Subtotal', value: formatMoney(subtotalMinor, currencyCode) },
     { label: 'Discount', value: formatMoney(discountMinor, currencyCode) },
-    { label: 'Tax', value: formatMoney(taxMinor, currencyCode) },
+    { label: taxLabel, value: formatMoney(taxMinor, currencyCode) },
     { label: 'Round Off', value: formatMoney(roundOffMinor, currencyCode) },
     {
       label: 'Grand Total',

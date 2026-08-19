@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { CurrencySettingsScreen } from '@/features/settings/screens/CurrencySettingsScreen';
 
 export default function CurrencySettingsRoute() {
-  return <ScreenPlaceholder name="Currency" />;
+  return <CurrencySettingsScreen />;
 }

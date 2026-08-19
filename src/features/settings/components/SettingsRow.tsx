@@ -64,6 +64,7 @@ export function SettingsRow({
   return (
     <ListItem
       title={label}
+      titleNumberOfLines={1}
       leading={leading}
       trailing={resolvedTrailing}
       divider={divider}

@@ -22,6 +22,14 @@ export interface InvoicePartySnapshot {
   companyName?: string;
 }
 
+/** Snapshot of the invoice-level tax applied at save time. */
+export interface InvoiceAppliedTax {
+  taxId?: string;
+  name: string;
+  rateBasisPoints: number;
+  amount: Money;
+}
+
 export interface InvoiceTotals {
   subtotalAmount: Money;
   discountAmount: Money;
@@ -51,6 +59,12 @@ export interface Invoice extends OfflineEntity {
   /** Line items snapshotted at save time for historical integrity. */
   items: InvoiceItem[];
   totals: InvoiceTotals;
+  /**
+   * Invoice-level tax captured at save time.
+   * `undefined` = legacy invoices that used per-line tax only.
+   * `null` = explicitly no tax.
+   */
+  appliedTax?: InvoiceAppliedTax | null;
   notes?: string;
   terms?: string;
   document?: InvoiceDocument;

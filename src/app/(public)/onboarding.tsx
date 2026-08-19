@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { OnboardingScreen } from '@/features/onboarding';
 
 export default function OnboardingRoute() {
-  return <ScreenPlaceholder name="Onboarding" />;
+  return <OnboardingScreen />;
 }

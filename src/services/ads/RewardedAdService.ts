@@ -10,10 +10,12 @@ import { admobConfig } from '@/constants/ads';
 
 import {
   extractAdError,
+  FULLSCREEN_AD_SHOW_OPTIONS,
   logAdEvent,
   nextRetryDelayMs,
   notifyAdLoadWaiters,
   REWARDED_SHOW_WAIT_MS,
+  waitForFullscreenAdSlot,
   type AdLoadWaiter,
 } from './adLoadUtils';
 
@@ -121,23 +123,24 @@ class RewardedAdServiceImpl {
    * Shows a loaded rewarded ad.
    * `rewarded` is true only if the user earned the reward callback before close.
    */
-  public show(): Promise<RewardedAdShowResult> {
+  public async show(): Promise<RewardedAdShowResult> {
     if (Platform.OS === 'web') {
-      return Promise.resolve({ shown: false, rewarded: false });
+      return { shown: false, rewarded: false };
     }
     if (this.showing) {
-      return Promise.resolve({ shown: false, rewarded: false });
+      return { shown: false, rewarded: false };
     }
 
     if (!this.isReady() || this.ad == null) {
       this.preload();
       logAdEvent('[AdMob] Rewarded not ready');
-      return Promise.resolve({ shown: false, rewarded: false });
+      return { shown: false, rewarded: false };
     }
 
     const ad = this.ad;
     this.showing = true;
     this.loaded = false;
+    await waitForFullscreenAdSlot();
 
     return new Promise<RewardedAdShowResult>((resolve) => {
       let earned = false;
@@ -175,7 +178,7 @@ class RewardedAdServiceImpl {
 
       this.unsubscribers.push(unsubscribeEarned, unsubscribeClosed, unsubscribeError);
 
-      void ad.show().catch((error: unknown) => {
+      void ad.show(FULLSCREEN_AD_SHOW_OPTIONS).catch((error: unknown) => {
         const { code, message } = extractAdError(error);
         logAdEvent(`[AdMob] Rewarded show failed: ${code} ${message}`);
         unsubscribeEarned();

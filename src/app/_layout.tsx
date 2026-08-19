@@ -64,7 +64,7 @@ function NavigationChrome({ children }: PropsWithChildren) {
  * application; every other route lives inside one of those two groups.
  */
 function RootNavigator() {
-  const { isBootstrapping, isAuthenticated } = useNavigationGuards();
+  const { isBootstrapping, isAuthenticated, hasCompletedOnboarding } = useNavigationGuards();
   const screenOptions = useStackScreenOptions(HEADERLESS_SCREEN_OPTIONS);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ function RootNavigator() {
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name={ROUTE_NAMES.public} />
 
-      <Stack.Protected guard={isAuthenticated}>
+      <Stack.Protected guard={isAuthenticated && hasCompletedOnboarding}>
         <Stack.Screen name={ROUTE_NAMES.protected} />
       </Stack.Protected>
 

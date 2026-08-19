@@ -5,6 +5,8 @@
  * onboarding, auth and billing features will fill in later. `Stack.Protected`
  * consumes them so a screen becoming unavailable also drops its history.
  */
+import { useUserPreferencesStore } from '@/stores/user-preferences';
+
 export type NavigationGuards = {
   /** Startup work is still running; keep the native splash screen up. */
   isBootstrapping: boolean;
@@ -16,20 +18,14 @@ export type NavigationGuards = {
   isPremium: boolean;
 };
 
-/**
- * Placeholder guard state.
- *
- * TODO(onboarding): read `hasCompletedOnboarding` from persisted storage.
- * TODO(auth): derive `isAuthenticated` from the session provider.
- * TODO(billing): derive `isPremium` from the entitlement store.
- */
-const NAVIGATION_GUARD_DEFAULTS: NavigationGuards = {
-  isBootstrapping: false,
-  hasCompletedOnboarding: true,
-  isAuthenticated: true,
-  isPremium: false,
-};
-
 export function useNavigationGuards(): NavigationGuards {
-  return NAVIGATION_GUARD_DEFAULTS;
+  const isHydrated = useUserPreferencesStore((state) => state.isHydrated);
+  const onboardingCompleted = useUserPreferencesStore((state) => state.onboardingCompleted);
+
+  return {
+    isBootstrapping: !isHydrated,
+    hasCompletedOnboarding: onboardingCompleted,
+    isAuthenticated: true,
+    isPremium: false,
+  };
 }

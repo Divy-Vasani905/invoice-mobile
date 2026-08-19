@@ -3,6 +3,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 
 export interface ListItemProps {
   title: string;
+  titleNumberOfLines?: number;
   subtitle?: string;
   description?: string;
   leading?: ReactNode;

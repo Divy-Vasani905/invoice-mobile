@@ -9,6 +9,7 @@ import type { ListItemProps } from './types';
 
 export const ListItem = memo(function ListItem({
   title,
+  titleNumberOfLines,
   subtitle,
   description,
   leading,
@@ -65,10 +66,15 @@ export const ListItem = memo(function ListItem({
         <View
           style={{
             flex: 1,
+            minWidth: 0,
             gap: theme.inputs.layout.gap,
           }}
         >
-          <Text style={[theme.typography.bodyMedium, { color: theme.colors.textPrimary }]}>
+          <Text
+            numberOfLines={titleNumberOfLines}
+            ellipsizeMode="tail"
+            style={[theme.typography.bodyMedium, { color: theme.colors.textPrimary }]}
+          >
             {title}
           </Text>
 

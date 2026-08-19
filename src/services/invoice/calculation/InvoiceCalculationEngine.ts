@@ -74,8 +74,18 @@ export class InvoiceCalculationEngine {
     const itemTotals = input.items.map((item) => this.calculateLineItem(item, input));
     const subtotalMinor = sumMinorAmounts(itemTotals.map((item) => item.subtotalMinor));
     const discountTotalMinor = sumMinorAmounts(itemTotals.map((item) => item.discountMinor));
-    const taxTotalMinor = sumMinorAmounts(itemTotals.map((item) => item.taxMinor));
-    const preRoundingTotalMinor = sumMinorAmounts(itemTotals.map((item) => item.totalMinor));
+    const lineTaxTotalMinor = sumMinorAmounts(itemTotals.map((item) => item.taxMinor));
+    const taxableAmountMinor = subtotalMinor - discountTotalMinor;
+    const invoiceTaxTotals = (input.invoiceTaxes ?? []).map((tax) => ({
+      tax,
+      amountMinor: calculateBasisPoints(taxableAmountMinor, tax.rateBasisPoints, rounding.mode),
+    }));
+    const invoiceTaxTotalMinor = sumMinorAmounts(
+      invoiceTaxTotals.map((taxAmount) => taxAmount.amountMinor),
+    );
+    const taxTotalMinor = lineTaxTotalMinor + invoiceTaxTotalMinor;
+    const preRoundingTotalMinor =
+      sumMinorAmounts(itemTotals.map((item) => item.totalMinor)) + invoiceTaxTotalMinor;
     const grandTotalMinor = roundToIncrement(
       preRoundingTotalMinor,
       rounding.roundingIncrementMinor,
@@ -91,7 +101,7 @@ export class InvoiceCalculationEngine {
       roundOffMinor: grandTotalMinor - preRoundingTotalMinor,
       grandTotalMinor,
       itemTotals,
-      taxTotals: this.aggregateTaxes(itemTotals),
+      taxTotals: this.aggregateTaxes(itemTotals, invoiceTaxTotals),
     };
   }
 
@@ -124,7 +134,10 @@ export class InvoiceCalculationEngine {
     }
   }
 
-  private aggregateTaxes(items: readonly InvoiceLineItemCalculation[]): readonly TaxAmount[] {
+  private aggregateTaxes(
+    items: readonly InvoiceLineItemCalculation[],
+    invoiceTaxes: readonly TaxAmount[] = [],
+  ): readonly TaxAmount[] {
     const totals = new Map<string, TaxAmount>();
 
     for (const item of items) {
@@ -136,6 +149,14 @@ export class InvoiceCalculationEngine {
           amountMinor: (existing?.amountMinor ?? 0) + taxAmount.amountMinor,
         });
       }
+    }
+
+    for (const taxAmount of invoiceTaxes) {
+      const existing = totals.get(taxAmount.tax.id);
+      totals.set(taxAmount.tax.id, {
+        tax: taxAmount.tax,
+        amountMinor: (existing?.amountMinor ?? 0) + taxAmount.amountMinor,
+      });
     }
 
     return [...totals.values()];

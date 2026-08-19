@@ -2,6 +2,7 @@ import {
   businessRepository,
   type BusinessRepository as BusinessStorageRepository,
 } from '@/storage';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { SyncStatus, type Business } from '@/types/models';
 
 import {
@@ -62,7 +63,7 @@ export class BusinessRepository {
       updatedAt: timestamp,
       localRevision: 1,
       syncStatus: SyncStatus.Pending,
-      defaultCurrencyCode: 'USD',
+      defaultCurrencyCode: getPreferredCurrencyCode(),
     };
     this.storage.create(business);
     return business;

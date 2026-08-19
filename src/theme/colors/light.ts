@@ -9,6 +9,7 @@ export const lightColors: SemanticColors = {
   primary: palette.blue[500],
   primaryMuted: palette.blue[400],
   primarySubtle: palette.blue[50],
+  primaryLogoBackground: palette.blue[50],
   onPrimary: palette.white,
 
   secondary: palette.navy[600],

@@ -9,10 +9,12 @@ import { admobConfig } from '@/constants/ads';
 
 import {
   extractAdError,
+  FULLSCREEN_AD_SHOW_OPTIONS,
   INTERSTITIAL_SHOW_WAIT_MS,
   logAdEvent,
   nextRetryDelayMs,
   notifyAdLoadWaiters,
+  waitForFullscreenAdSlot,
   type AdLoadWaiter,
 } from './adLoadUtils';
 
@@ -133,7 +135,8 @@ class InterstitialAdServiceImpl {
     try {
       this.showing = true;
       this.loaded = false;
-      await this.ad!.show();
+      await waitForFullscreenAdSlot();
+      await this.ad!.show(FULLSCREEN_AD_SHOW_OPTIONS);
       return true;
     } catch (error) {
       this.showing = false;

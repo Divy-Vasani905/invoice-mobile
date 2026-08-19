@@ -7,7 +7,6 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Loader } from '@/components/feedback/Loader';
 import { SearchInput } from '@/components/form/SearchInput';
-import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import { Header } from '@/components/layout/Header';
 import { SegmentControl } from '@/components/layout/SegmentControl';
 import { InvoiceUsageModal, useCreateInvoiceNavigation } from '@/features/credits';
@@ -143,22 +142,6 @@ export const InvoicesScreen = memo(function InvoicesScreen() {
           />
         }
       />
-      {isEmpty && (
-        <View
-          style={{
-            position: 'absolute',
-            right: cStyleValues.spacing.lg,
-            bottom: cStyleValues.spacing.xl,
-          }}
-        >
-          <FloatingActionButton
-            accessibilityLabel="Create invoice"
-            label="New Invoice"
-            icon={({ color, size }) => <Ionicons name="add" color={color} size={size} />}
-            onPress={openCreateInvoice}
-          />
-        </View>
-      )}
 
       <InvoiceUsageModal {...usageModalProps} />
     </View>

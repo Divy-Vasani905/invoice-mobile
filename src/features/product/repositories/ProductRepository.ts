@@ -6,6 +6,7 @@ import {
   type InvoiceRepository,
   type ProductRepository as ProductStorageRepository,
 } from '@/storage';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { ProductType, ProductUnit, SyncStatus, type Product } from '@/types/models';
 
 import { ProductReferencedError } from '../types/product.types';
@@ -104,7 +105,6 @@ export class ProductRepository {
   }
 
   public getDefaultFormValues(): ProductFormValues {
-    const business = businessRepository.get();
     const settings = settingsRepository.get();
     return {
       name: '',
@@ -114,7 +114,7 @@ export class ProductRepository {
       unit: settings?.invoice.defaultProductUnit ?? ProductUnit.Each,
       unitPrice: '',
       taxRate: '',
-      currencyCode: business?.defaultCurrencyCode ?? 'USD',
+      currencyCode: getPreferredCurrencyCode(),
       isActive: true,
     };
   }

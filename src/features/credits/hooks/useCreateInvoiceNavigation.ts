@@ -57,6 +57,9 @@ export function useCreateInvoiceNavigation() {
   }, [router]);
 
   const watchAdForCredit = useCallback(async () => {
+    // Native RN Modal must be gone before AdMob presents, or the ad can clip
+    // inside the dialog or overflow past the screen.
+    setShowUsageModal(false);
     await rewarded.watchAdForCredit();
   }, [rewarded]);
 

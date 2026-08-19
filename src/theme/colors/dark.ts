@@ -9,6 +9,7 @@ export const darkColors: SemanticColors = {
   primary: palette.blue[400],
   primaryMuted: palette.blue[300],
   primarySubtle: 'rgba(75, 163, 244, 0.16)',
+  primaryLogoBackground: '#CADED8',
   onPrimary: palette.navy[950],
 
   secondary: palette.navy[200],

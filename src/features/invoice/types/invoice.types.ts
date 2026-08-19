@@ -36,10 +36,17 @@ export interface InvoiceFormValues {
   notes: string;
   items: InvoiceFormItemValues[];
   status: InvoiceStatus;
+  /** `none`, a saved tax id, or `snapshot` for a historical applied tax. */
+  appliedTaxId: string;
+  appliedTaxName: string;
+  appliedTaxRateBasisPoints: number;
+  /** When true, totals use per-line tax rates from older invoices. */
+  useLegacyItemTax: boolean;
 }
 
 export interface InvoiceNumberReservation {
   invoiceNumber: string;
+  sequenceNumber: number;
   nextNumber: number;
   prefix: string;
   paddingLength: number;

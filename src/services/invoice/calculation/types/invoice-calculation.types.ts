@@ -81,6 +81,11 @@ export interface InvoiceLineItemInput {
 
 export interface InvoiceCalculationInput extends InvoiceCalculationOptions {
   items: readonly InvoiceLineItemInput[];
+  /**
+   * Invoice-level taxes applied once to the discounted subtotal.
+   * Used by V1 percentage tax; line-item taxes remain for legacy invoices.
+   */
+  invoiceTaxes?: readonly TaxDefinition[];
 }
 
 export interface TaxAmount {

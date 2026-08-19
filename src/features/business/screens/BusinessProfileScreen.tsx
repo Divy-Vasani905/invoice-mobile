@@ -1,16 +1,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Loader } from '@/components/feedback/Loader';
+import { showToast } from '@/components/feedback/Toast';
 import { Card } from '@/components/layout/Card';
 import { Header } from '@/components/layout/Header';
 import { ListItem } from '@/components/layout/ListItem';
 import { ThemedText } from '@/components/themed-text';
+import { formatCountryLabel, getCountryOptions } from '@/features/preferences/catalog';
+import { SearchablePickerModal } from '@/features/preferences/components/SearchablePickerModal';
 import { ROUTES } from '@/navigation';
+import { useUserPreferencesStore } from '@/stores/user-preferences';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
@@ -21,6 +26,18 @@ export function BusinessProfileScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const { summary, isLoading, isError, isEmpty, refreshBusiness } = useBusiness();
+  const countryCode = useUserPreferencesStore((state) => state.countryCode);
+  const setCountryCode = useUserPreferencesStore((state) => state.setCountryCode);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const countryItems = useMemo(
+    () =>
+      getCountryOptions().map((country) => ({
+        id: country.code,
+        title: `${country.flag}  ${country.name}`,
+        subtitle: country.code,
+      })),
+    [],
+  );
 
   if (isLoading) return <Loader mode="fullScreen" text="Loading business profile" />;
 
@@ -122,6 +139,14 @@ export function BusinessProfileScreen() {
         </Card>
 
         <Card variant="outlined" padding="none">
+          <ListItem
+            title="Country"
+            subtitle={countryCode == null ? 'Not set' : formatCountryLabel(countryCode)}
+            pressable
+            divider
+            onPress={() => setShowCountryPicker(true)}
+            accessibilityHint="Opens the country picker"
+          />
           {business.taxId != null && (
             <ListItem title="GST / Tax ID" subtitle={business.taxId} divider />
           )}
@@ -154,6 +179,25 @@ export function BusinessProfileScreen() {
           accessibilityHint="Opens the edit business form"
         />
       </ScrollView>
+      <SearchablePickerModal
+        visible={showCountryPicker}
+        title="Select country"
+        searchPlaceholder="Search country..."
+        items={countryItems}
+        selectedId={countryCode}
+        onClose={() => setShowCountryPicker(false)}
+        onSelect={(code) => {
+          try {
+            setCountryCode(code);
+            showToast('success', { title: 'Country updated' });
+          } catch {
+            showToast('error', {
+              title: 'Could not save country',
+              message: 'Please try again.',
+            });
+          }
+        }}
+      />
     </View>
   );
 }

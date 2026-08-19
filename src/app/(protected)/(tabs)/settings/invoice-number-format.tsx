@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { InvoiceNumberFormatScreen } from '@/features/settings/screens/InvoiceNumberFormatScreen';
 
 export default function InvoiceNumberFormatRoute() {
-  return <ScreenPlaceholder name="Invoice Number Format" />;
+  return <InvoiceNumberFormatScreen />;
 }

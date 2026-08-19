@@ -3,23 +3,35 @@ import {
   InvoiceCalculationEngine,
   type InvoiceCalculationResult,
   type InvoiceLineItemInput,
+  type TaxDefinition,
 } from '@/services/invoice/calculation';
 import { InvoiceNumberGenerator } from '@/services/invoice/InvoiceNumberGenerator';
+import {
+  NO_TAX_SELECTION_ID,
+  SNAPSHOT_TAX_SELECTION_ID,
+} from '@/features/tax/utils/tax.utils';
 import type { BadgeVariant } from '@/theme';
 import {
   InvoiceStatus,
   ProductUnit,
   SyncStatus,
+  DEFAULT_INVOICE_NUMBER_PADDING,
+  DEFAULT_INVOICE_PREFIX,
+  DEFAULT_NEXT_INVOICE_NUMBER,
+  MAX_INVOICE_NUMBER_PADDING,
+  MIN_INVOICE_NUMBER_PADDING,
   type Address,
   type AppSettings,
   type Business,
   type Customer,
   type Invoice,
+  type InvoiceAppliedTax,
   type InvoiceItem,
   type InvoicePartySnapshot,
   type InvoiceTotals,
   type Money,
   type Product,
+  type TaxCatalogSettings,
 } from '@/types/models';
 
 import type {
@@ -30,8 +42,7 @@ import type {
   InvoiceNumberReservation,
 } from '../types/invoice.types';
 
-export const DEFAULT_INVOICE_NUMBER_PADDING = 6;
-export const DEFAULT_INVOICE_PREFIX = 'INV-';
+export { DEFAULT_INVOICE_NUMBER_PADDING, DEFAULT_INVOICE_PREFIX, DEFAULT_NEXT_INVOICE_NUMBER };
 export const DEFAULT_PAYMENT_TERMS_DAYS = 30;
 
 const calculationEngine = new InvoiceCalculationEngine();
@@ -282,7 +293,11 @@ export function invoiceItemToFormItem(item: InvoiceItem): InvoiceFormItemValues 
   };
 }
 
-export function toInvoiceFormValues(invoice: Invoice): InvoiceFormValues {
+export function toInvoiceFormValues(
+  invoice: Invoice,
+  catalog?: TaxCatalogSettings,
+): InvoiceFormValues {
+  const taxFields = invoiceTaxToFormFields(invoice, catalog);
   return {
     invoiceNumber: invoice.invoiceNumber,
     customerId: invoice.customerId ?? '',
@@ -293,20 +308,162 @@ export function toInvoiceFormValues(invoice: Invoice): InvoiceFormValues {
     notes: invoice.notes ?? '',
     items: (invoice.items ?? []).map(invoiceItemToFormItem),
     status: invoice.status,
+    ...taxFields,
   };
 }
 
-export function reserveInvoiceNumber(settings: AppSettings | null): InvoiceNumberReservation {
-  const prefix = settings?.invoice.invoiceNumberPrefix?.trim() || DEFAULT_INVOICE_PREFIX;
-  const nextNumber = settings?.invoice.nextInvoiceNumber ?? 1;
-  const paddingLength = DEFAULT_INVOICE_NUMBER_PADDING;
-  const generation = numberGenerator.generateNext({ prefix, nextNumber, paddingLength });
+export function invoiceTaxToFormFields(
+  invoice: Invoice,
+  catalog?: TaxCatalogSettings,
+): Pick<
+  InvoiceFormValues,
+  'appliedTaxId' | 'appliedTaxName' | 'appliedTaxRateBasisPoints' | 'useLegacyItemTax'
+> {
+  if (invoice.appliedTax === null) {
+    return {
+      appliedTaxId: NO_TAX_SELECTION_ID,
+      appliedTaxName: '',
+      appliedTaxRateBasisPoints: 0,
+      useLegacyItemTax: false,
+    };
+  }
+  if (invoice.appliedTax != null) {
+    const snapshot = invoice.appliedTax;
+    const matchingCatalogTax = catalog?.taxes.find(
+      (tax) =>
+        tax.id === snapshot.taxId &&
+        tax.name === snapshot.name &&
+        tax.rateBasisPoints === snapshot.rateBasisPoints,
+    );
+    return {
+      appliedTaxId: matchingCatalogTax?.id ?? SNAPSHOT_TAX_SELECTION_ID,
+      appliedTaxName: snapshot.name,
+      appliedTaxRateBasisPoints: snapshot.rateBasisPoints,
+      useLegacyItemTax: false,
+    };
+  }
   return {
-    invoiceNumber: generation.invoiceNumber,
-    nextNumber: generation.nextNumber,
-    prefix,
+    appliedTaxId: NO_TAX_SELECTION_ID,
+    appliedTaxName: '',
+    appliedTaxRateBasisPoints: 0,
+    useLegacyItemTax: true,
+  };
+}
+
+export function resolveFormTaxDefinition(
+  values: Pick<
+    InvoiceFormValues,
+    'appliedTaxId' | 'appliedTaxName' | 'appliedTaxRateBasisPoints' | 'useLegacyItemTax'
+  >,
+): TaxDefinition | null {
+  if (values.useLegacyItemTax) return null;
+  if (values.appliedTaxId === NO_TAX_SELECTION_ID) return null;
+  const name = values.appliedTaxName.trim() || 'Tax';
+  return {
+    id: values.appliedTaxId === SNAPSHOT_TAX_SELECTION_ID ? 'invoice-tax' : values.appliedTaxId,
+    name,
+    rateBasisPoints: values.appliedTaxRateBasisPoints,
+  };
+}
+
+export function buildAppliedTaxSnapshot(
+  values: InvoiceFormValues,
+  taxAmountMinor: number,
+  currencyCode: string,
+): InvoiceAppliedTax | null | undefined {
+  if (values.useLegacyItemTax) return undefined;
+  const definition = resolveFormTaxDefinition(values);
+  if (definition == null) return null;
+  return {
+    taxId:
+      values.appliedTaxId === SNAPSHOT_TAX_SELECTION_ID || values.appliedTaxId === NO_TAX_SELECTION_ID
+        ? undefined
+        : values.appliedTaxId,
+    name: definition.name,
+    rateBasisPoints: definition.rateBasisPoints,
+    amount: money(taxAmountMinor, currencyCode),
+  };
+}
+
+export function resolveInvoiceNumberingConfig(settings: AppSettings | null): {
+  prefix: string;
+  nextNumber: number;
+  paddingLength: number;
+} {
+  const storedNext = settings?.invoice.nextInvoiceNumber;
+  const storedPadding = settings?.invoice.invoiceNumberPadding;
+  const nextNumber =
+    storedNext != null && Number.isSafeInteger(storedNext) && storedNext >= 1
+      ? storedNext
+      : DEFAULT_NEXT_INVOICE_NUMBER;
+  const paddingLength =
+    storedPadding != null &&
+    Number.isSafeInteger(storedPadding) &&
+    storedPadding >= MIN_INVOICE_NUMBER_PADDING &&
+    storedPadding <= MAX_INVOICE_NUMBER_PADDING
+      ? storedPadding
+      : DEFAULT_INVOICE_NUMBER_PADDING;
+
+  return {
+    prefix: settings?.invoice.invoiceNumberPrefix?.trim() || DEFAULT_INVOICE_PREFIX,
+    nextNumber,
     paddingLength,
   };
+}
+
+export function formatInvoiceNumberPreview(config: {
+  prefix: string;
+  nextNumber: number;
+  paddingLength: number;
+}): string {
+  return numberGenerator.format(config);
+}
+
+export function collectInvoiceNumbers(invoices: { invoiceNumber: string }[]): ReadonlySet<string> {
+  return new Set(invoices.map((invoice) => invoice.invoiceNumber));
+}
+
+/**
+ * Peeks the next unique formatted invoice number without persisting state.
+ * Persist `reservation.nextNumber` only after the invoice is saved.
+ */
+export function peekNextAvailableInvoiceNumber(
+  settings: AppSettings | null,
+  existingNumbers: ReadonlySet<string>,
+): InvoiceNumberReservation {
+  const config = resolveInvoiceNumberingConfig(settings);
+  const generation = numberGenerator.findNextAvailable(config, existingNumbers);
+  return {
+    invoiceNumber: generation.invoiceNumber,
+    sequenceNumber: generation.sequenceNumber,
+    nextNumber: generation.nextNumber,
+    prefix: config.prefix,
+    paddingLength: config.paddingLength,
+  };
+}
+
+/**
+ * After importing invoices, persist this sequence as `nextInvoiceNumber`
+ * (the next number to assign), not `reservation.nextNumber`.
+ */
+export function nextSequenceAfterImport(
+  settings: AppSettings | null,
+  existingNumbers: ReadonlySet<string>,
+): number {
+  return peekNextAvailableInvoiceNumber(settings, existingNumbers).sequenceNumber;
+}
+
+export function isFormattedInvoiceNumberTaken(
+  settings: AppSettings | null,
+  existingNumbers: ReadonlySet<string>,
+): boolean {
+  const config = resolveInvoiceNumberingConfig(settings);
+  try {
+    const formatted = numberGenerator.format(config);
+    return existingNumbers.has(formatted);
+  } catch {
+    return false;
+  }
 }
 
 export function money(amountMinor: number, currencyCode: string): Money {
@@ -329,14 +486,16 @@ export function emptyTotals(currencyCode: string): InvoiceTotals {
 export function formItemsToCalculationInput(
   items: InvoiceFormItemValues[],
   currencyCode: string,
+  options?: { ignoreItemTaxes?: boolean },
 ): { inputs: InvoiceLineItemInput[]; precision: number } | null {
   const precision = getCurrencyFractionDigits(currencyCode);
   const inputs: InvoiceLineItemInput[] = [];
+  const ignoreItemTaxes = options?.ignoreItemTaxes === true;
 
   for (const item of items) {
     const quantity = parseQuantityInput(item.quantity);
     const unitPriceMajor = parsePriceInput(item.unitPrice);
-    const taxBps = parseTaxRatePercentToBasisPoints(item.taxRate);
+    const taxBps = ignoreItemTaxes ? 0 : parseTaxRatePercentToBasisPoints(item.taxRate);
     const discountMajor = item.discount.trim().length === 0 ? 0 : parsePriceInput(item.discount);
 
     if (quantity == null || unitPriceMajor == null || taxBps == null || discountMajor == null) {
@@ -367,6 +526,10 @@ export function formItemsToCalculationInput(
 export function calculateFormTotals(
   items: InvoiceFormItemValues[],
   currencyCode: string,
+  taxForm?: Pick<
+    InvoiceFormValues,
+    'appliedTaxId' | 'appliedTaxName' | 'appliedTaxRateBasisPoints' | 'useLegacyItemTax'
+  >,
 ): InvoiceCalculationResult | null {
   if (items.length === 0) {
     return {
@@ -382,12 +545,18 @@ export function calculateFormTotals(
     };
   }
 
-  const prepared = formItemsToCalculationInput(items, currencyCode);
+  const useLegacy = taxForm?.useLegacyItemTax === true;
+  const invoiceTax = taxForm == null || useLegacy ? null : resolveFormTaxDefinition(taxForm);
+
+  const prepared = formItemsToCalculationInput(items, currencyCode, {
+    ignoreItemTaxes: !useLegacy && taxForm != null,
+  });
   if (prepared == null) return null;
 
   return calculationEngine.calculateInvoice({
     items: prepared.inputs,
     currencyPrecision: prepared.precision,
+    invoiceTaxes: invoiceTax == null ? undefined : [invoiceTax],
   });
 }
 

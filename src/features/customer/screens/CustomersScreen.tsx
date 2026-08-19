@@ -7,7 +7,6 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Loader } from '@/components/feedback/Loader';
 import { SearchInput } from '@/components/form/SearchInput';
-import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import { Header } from '@/components/layout/Header';
 import { ROUTES } from '@/navigation';
 import { cStyle, useTheme } from '@/theme';
@@ -134,21 +133,6 @@ export const CustomersScreen = memo(function CustomersScreen() {
         windowSize={7}
         removeClippedSubviews
       />
-      <View
-        pointerEvents="box-none"
-        style={{
-          position: 'absolute',
-          right: cStyleValues.spacing.lg,
-          bottom: cStyleValues.spacing.lg,
-          ...cStyle.z40,
-        }}
-      >
-        <FloatingActionButton
-          icon={({ color, size }) => <Ionicons name="person-add" color={color} size={size} />}
-          onPress={openCreateCustomer}
-          accessibilityLabel="Add customer"
-        />
-      </View>
     </View>
   );
 });

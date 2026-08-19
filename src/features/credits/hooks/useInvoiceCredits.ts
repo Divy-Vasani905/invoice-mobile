@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 
+import { useRemoteConfigStore } from '@/stores/remote-config/remote-config-store';
+
 import {
   InsufficientInvoiceCreditsError,
   invoiceCreditFeatureRepository,
@@ -11,9 +13,12 @@ export const INVOICE_CREDITS_QUERY_KEY = ['invoice-credits'] as const;
 
 export function useInvoiceCredits() {
   const queryClient = useQueryClient();
+  const freeInvoicesPerMonth = useRemoteConfigStore(
+    (s) => s.monetizationConfig.freeInvoicesPerMonth,
+  );
 
   const creditsQuery = useQuery({
-    queryKey: INVOICE_CREDITS_QUERY_KEY,
+    queryKey: [...INVOICE_CREDITS_QUERY_KEY, freeInvoicesPerMonth],
     queryFn: () => invoiceCreditFeatureRepository.getSnapshot(),
   });
 

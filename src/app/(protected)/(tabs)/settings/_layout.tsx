@@ -27,25 +27,13 @@ export default function SettingsLayout() {
         name="invoice-templates"
         options={createHeaderOptions({ title: 'Invoice Templates' })}
       />
-      <Stack.Screen
-        name="invoice-number-format"
-        options={createHeaderOptions({ title: 'Invoice Number Format' })}
-      />
+      <Stack.Screen name="invoice-number-format" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="currency" options={createHeaderOptions({ title: 'Currency' })} />
-      <Stack.Screen name="tax-settings" options={createHeaderOptions({ title: 'Tax Settings' })} />
+      <Stack.Screen name="tax-settings" options={HEADERLESS_SCREEN_OPTIONS} />
+      <Stack.Screen name="tax-form" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen
         name="backup-restore"
         options={createHeaderOptions({ title: 'Backup & Restore' })}
-      />
-      <Stack.Screen name="help-center" options={createHeaderOptions({ title: 'Help Center' })} />
-      <Stack.Screen
-        name="contact-support"
-        options={createHeaderOptions({ title: 'Contact Support' })}
-      />
-      <Stack.Screen name="report-bug" options={createHeaderOptions({ title: 'Report Bug' })} />
-      <Stack.Screen
-        name="feature-request"
-        options={createHeaderOptions({ title: 'Feature Request' })}
       />
       <Stack.Screen
         name="privacy-policy"

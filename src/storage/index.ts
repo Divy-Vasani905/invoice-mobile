@@ -8,6 +8,7 @@ import { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository
 import { MmkvProductRepository } from '@/storage/repositories/product-repository';
 import { MmkvRemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 import { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
+import { MmkvUserPreferencesRepository } from '@/storage/repositories/user-preferences-repository';
 
 export type { AdMonetizationRepository } from '@/storage/repositories/ad-monetization-repository';
 export type { BusinessRepository } from '@/storage/interfaces/business-repository';
@@ -22,6 +23,7 @@ export type {
 } from '@/storage/interfaces/repository';
 export type { RemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 export type { SettingsRepository } from '@/storage/interfaces/settings-repository';
+export type { UserPreferencesRepository } from '@/storage/interfaces/user-preferences-repository';
 export type { StorageDriver } from '@/storage/interfaces/storage-driver';
 
 export { StorageKeys } from '@/storage/keys';
@@ -40,6 +42,7 @@ export { MmkvInvoiceRepository } from '@/storage/repositories/invoice-repository
 export { MmkvProductRepository } from '@/storage/repositories/product-repository';
 export { MmkvRemoteConfigRepository } from '@/storage/repositories/remote-config-repository';
 export { MmkvSettingsRepository } from '@/storage/repositories/settings-repository';
+export { MmkvUserPreferencesRepository } from '@/storage/repositories/user-preferences-repository';
 
 /** Ready-to-use repository instances backed by the central MMKV store. */
 export const businessRepository = new MmkvBusinessRepository(storage, StorageKeys.business);
@@ -47,6 +50,10 @@ export const customerRepository = new MmkvCustomerRepository(storage, StorageKey
 export const productRepository = new MmkvProductRepository(storage, StorageKeys.products);
 export const invoiceRepository = new MmkvInvoiceRepository(storage, StorageKeys.invoices);
 export const settingsRepository = new MmkvSettingsRepository(storage, StorageKeys.settings);
+export const userPreferencesRepository = new MmkvUserPreferencesRepository(
+  storage,
+  StorageKeys.userPreferences,
+);
 export const invoiceCreditRepository = new MmkvInvoiceCreditRepository(
   storage,
   StorageKeys.invoiceCredits,

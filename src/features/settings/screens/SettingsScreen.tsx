@@ -3,15 +3,15 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Share, View } from 'react-native';
 
-import { Avatar } from '@/components/Avatar';
 import { Modal } from '@/components/feedback/Modal';
 import { showToast } from '@/components/feedback/Toast';
 import { Switch } from '@/components/form/Switch';
 import { IconButton } from '@/components/IconButton';
 import { Header } from '@/components/layout/Header';
 import { ThemedText } from '@/components/themed-text';
+import { invoiceFeatureRepository } from '@/features/invoice/repositories/InvoiceRepository';
 import { ROUTES } from '@/navigation';
-import { businessRepository } from '@/storage';
+import { useUserPreferencesStore } from '@/stores/user-preferences';
 import { cStyle, useTheme, type ThemePreference } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
@@ -50,11 +50,12 @@ export function SettingsScreen() {
   const { theme, preference, setThemePreference } = useTheme();
   const [autoBackupReminder, setAutoBackupReminder] = useState(true);
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
-  const [showLanguageInfo, setShowLanguageInfo] = useState(false);
 
-  const currencyCode = businessRepository.get()?.defaultCurrencyCode ?? 'USD';
+  const currencyCode = useUserPreferencesStore((state) => state.currencyCode);
+  const resetOnboarding = useUserPreferencesStore((state) => state.resetOnboarding);
   const appVersion = getAppVersion();
+  const invoiceNumberPreview =
+    invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber;
 
   const leadingIcon = (name: keyof typeof Ionicons.glyphMap) => (
     <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.backgroundSubtle }]}>
@@ -72,7 +73,6 @@ export function SettingsScreen() {
     <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
       <Header
         title="Settings"
-        leftAction={<Avatar initials="ME" size="sm" accessibilityLabel="Profile avatar" />}
         rightActions={
           <IconButton
             icon={({ color, size }) => (
@@ -107,13 +107,14 @@ export function SettingsScreen() {
           />
           <SettingsRow
             label="Invoice Number Format"
+            value={invoiceNumberPreview}
             leading={leadingIcon('pricetag-outline')}
             onPress={() => router.push(ROUTES.invoiceNumberFormat)}
             accessibilityHint="Opens invoice number format settings"
           />
           <SettingsRow
             label="Currency"
-            value={currencyDisplayLabel(currencyCode)}
+            value={currencyCode == null ? 'Not set' : currencyDisplayLabel(currencyCode)}
             leading={leadingIcon('cash-outline')}
             onPress={() => router.push(ROUTES.currencySettings)}
             accessibilityHint="Opens currency settings"
@@ -135,14 +136,6 @@ export function SettingsScreen() {
             onPress={() => setShowThemePicker(true)}
             accessibilityHint="Choose light, dark, or system theme"
           />
-          <SettingsRow
-            label="Language"
-            value="English"
-            leading={leadingIcon('language-outline')}
-            divider={false}
-            onPress={() => setShowLanguageInfo(true)}
-            accessibilityHint="Language selection will be available in a future update"
-          />
         </SettingsSection>
 
         <SettingsSection title="Premium">
@@ -152,19 +145,6 @@ export function SettingsScreen() {
             leading={premiumIcon}
             onPress={() => router.push(ROUTES.premium)}
             accessibilityHint="Opens the premium screen"
-          />
-          <SettingsRow
-            label="Remove Ads"
-            leading={leadingIcon('ban-outline')}
-            onPress={() => router.push(ROUTES.premium)}
-            accessibilityHint="Opens premium options to remove ads"
-          />
-          <SettingsRow
-            label="Restore Purchases"
-            leading={leadingIcon('refresh-outline')}
-            divider={false}
-            onPress={() => router.push(ROUTES.restorePurchases)}
-            accessibilityHint="Opens restore purchases"
           />
         </SettingsSection>
 
@@ -193,45 +173,39 @@ export function SettingsScreen() {
             }
             accessibilityLabel="Auto Backup Reminder"
           />
-          <SettingsRow
-            label="Clear Cache"
-            leading={leadingIcon('trash-outline')}
-            divider={false}
-            onPress={() => setShowClearCacheConfirm(true)}
-            accessibilityHint="Shows a confirmation before clearing cache"
-          />
         </SettingsSection>
 
         <SettingsSection title="Support">
-          <SettingsRow
-            label="Help Center"
-            leading={leadingIcon('help-circle-outline')}
-            onPress={() => router.push(ROUTES.helpCenter)}
-          />
-          <SettingsRow
-            label="Contact Support"
-            leading={leadingIcon('mail-outline')}
-            onPress={() => router.push(ROUTES.contactSupport)}
-          />
-          <SettingsRow
-            label="Report Bug"
-            leading={leadingIcon('bug-outline')}
-            onPress={() => router.push(ROUTES.reportBug)}
-          />
-          <SettingsRow
-            label="Feature Request"
-            leading={leadingIcon('bulb-outline')}
-            divider={false}
-            onPress={() => router.push(ROUTES.featureRequest)}
-          />
-        </SettingsSection>
-
-        <SettingsSection title="About">
           <SettingsRow
             label="Privacy Policy"
             leading={leadingIcon('shield-checkmark-outline')}
             onPress={() => router.push(ROUTES.privacyPolicy)}
           />
+          <SettingsRow
+            label="Send Feedback"
+            leading={leadingIcon('chatbox-outline')}
+            divider={false}
+            onPress={() => undefined}
+            accessibilityHint="Opens the feedback form"
+          />
+        </SettingsSection>
+
+        {__DEV__ && (
+          <SettingsSection title="Developer">
+            <SettingsRow
+              label="Reset onboarding"
+              leading={leadingIcon('refresh-outline')}
+              divider={false}
+              onPress={() => {
+                resetOnboarding();
+                router.replace(ROUTES.onboarding);
+              }}
+              accessibilityHint="Clears country, currency, and onboarding completion for testing"
+            />
+          </SettingsSection>
+        )}
+
+        <SettingsSection title="Others">
           <SettingsRow
             label="Terms"
             leading={leadingIcon('document-outline')}
@@ -272,32 +246,6 @@ export function SettingsScreen() {
         >
           Version {appVersion}
         </ThemedText>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Premium promotional banner"
-          accessibilityHint="Opens the premium screen"
-          onPress={() => router.push(ROUTES.premium)}
-          style={[
-            cStyle.ph16,
-            cStyle.pv12,
-            cStyle.r16,
-            cStyle.flexRow,
-            cStyle.itemCenter,
-            cStyle.justifyBetween,
-            { backgroundColor: theme.colors.premiumSubtle },
-          ]}
-        >
-          <View style={[cStyle.flex1, cStyle.g4, cStyle.pr12]}>
-            <ThemedText style={[theme.typography.label, { color: theme.colors.premium }]}>
-              Go Premium
-            </ThemedText>
-            <ThemedText style={[theme.typography.helper, { color: theme.colors.textSecondary }]}>
-              Remove ads and unlock advanced features.
-            </ThemedText>
-          </View>
-          <Ionicons name="chevron-forward" size={theme.iconSizes.md} color={theme.colors.premium} />
-        </Pressable>
       </ScrollView>
 
       <Modal
@@ -348,39 +296,6 @@ export function SettingsScreen() {
             ))}
           </View>
         }
-      />
-
-      <Modal
-        visible={showLanguageInfo}
-        title="Language"
-        description="English is available now. Additional languages will be added in a future update."
-        primaryAction={{
-          label: 'OK',
-          onPress: () => setShowLanguageInfo(false),
-        }}
-        onRequestClose={() => setShowLanguageInfo(false)}
-      />
-
-      <Modal
-        visible={showClearCacheConfirm}
-        title="Clear Cache?"
-        description="Are you sure you want to clear cached data? Your businesses, customers, products, and invoices will not be deleted."
-        variant="destructive"
-        primaryAction={{
-          label: 'Clear Cache',
-          onPress: () => {
-            setShowClearCacheConfirm(false);
-            showToast('success', {
-              title: 'Cache cleared',
-              message: 'Temporary cache was cleared. Your business data is safe.',
-            });
-          },
-        }}
-        secondaryAction={{
-          label: 'Cancel',
-          onPress: () => setShowClearCacheConfirm(false),
-        }}
-        onRequestClose={() => setShowClearCacheConfirm(false)}
       />
     </View>
   );

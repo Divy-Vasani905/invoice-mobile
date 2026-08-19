@@ -4,7 +4,10 @@ import type { GlobalConfig, MonetizationConfig } from '@/services/remote-config/
 import {
   getDefaultGlobalConfig,
   getDefaultMonetizationConfig,
+  validateGlobalConfig,
+  validateMonetizationConfig,
 } from '@/services/remote-config/validation';
+import { remoteConfigRepository } from '@/storage';
 
 export type RemoteConfigState = {
   globalConfig: GlobalConfig;
@@ -25,13 +28,30 @@ export type RemoteConfigState = {
   markInitialized: () => void;
 };
 
+function readPersistedRemoteConfig(): {
+  globalConfig: GlobalConfig;
+  monetizationConfig: MonetizationConfig;
+} {
+  const validGlobal = validateGlobalConfig(remoteConfigRepository.getGlobalConfig());
+  const validMonetization = validateMonetizationConfig(
+    remoteConfigRepository.getMonetizationConfig(),
+  );
+
+  return {
+    globalConfig: validGlobal ?? getDefaultGlobalConfig(),
+    monetizationConfig: validMonetization ?? getDefaultMonetizationConfig(),
+  };
+}
+
 /**
  * Runtime source of truth for Remote Config.
  * Hydrated from MMKV/defaults first; updated after successful Firebase fetch+validate.
  */
+const persisted = readPersistedRemoteConfig();
+
 export const useRemoteConfigStore = create<RemoteConfigState>((set) => ({
-  globalConfig: getDefaultGlobalConfig(),
-  monetizationConfig: getDefaultMonetizationConfig(),
+  globalConfig: persisted.globalConfig,
+  monetizationConfig: persisted.monetizationConfig,
   isInitialized: false,
   isFetching: false,
   lastFetchedAt: null,

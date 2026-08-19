@@ -16,8 +16,16 @@ import { TextArea } from '@/components/form/TextArea';
 import { ThemedText } from '@/components/themed-text';
 import { businessFeatureRepository } from '@/features/business/repositories/BusinessRepository';
 import { useCustomers } from '@/features/customer/hooks/useCustomers';
+import { useDashboard } from '@/features/dashboard/hooks/useDashboard';
 import { useProducts } from '@/features/product/hooks/useProducts';
+import { taxSettingsRepository } from '@/features/tax/repositories/TaxSettingsRepository';
+import {
+  NO_TAX_SELECTION_ID,
+  SNAPSHOT_TAX_SELECTION_ID,
+  formatSavedTaxLabel,
+} from '@/features/tax/utils/tax.utils';
 import { ROUTES } from '@/navigation';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 import { InvoiceStatus } from '@/types/models';
@@ -27,6 +35,7 @@ import { InvoiceItemEditor } from '../components/InvoiceItemEditor';
 import { InvoiceItemRow } from '../components/InvoiceItemRow';
 import { InvoiceProductPicker } from '../components/InvoiceProductPicker';
 import { InvoiceSummary } from '../components/InvoiceSummary';
+import { InvoiceTaxPicker } from '../components/InvoiceTaxPicker';
 import { useInvoices } from '../hooks/useInvoices';
 import {
   calculateFormTotals,
@@ -54,6 +63,10 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [showTaxPicker, setShowTaxPicker] = useState(false);
+  const [taxCatalog, setTaxCatalog] = useState(() => taxSettingsRepository.getCatalog());
+
+  const { openBusinessProfile } = useDashboard();
 
   const {
     invoice,
@@ -100,10 +113,14 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
       customerName: '',
       issuedAt: '',
       dueAt: '',
-      currencyCode: 'USD',
+      currencyCode: getPreferredCurrencyCode(),
       notes: '',
       items: [],
       status: InvoiceStatus.Draft,
+      appliedTaxId: NO_TAX_SELECTION_ID,
+      appliedTaxName: '',
+      appliedTaxRateBasisPoints: 0,
+      useLegacyItemTax: false,
     },
     mode: 'onSubmit',
   });
@@ -118,16 +135,33 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
   const watchedCurrency = useWatch({ control, name: 'currencyCode' });
   const watchedCustomerName = useWatch({ control, name: 'customerName' });
   const watchedInvoiceNumber = useWatch({ control, name: 'invoiceNumber' });
+  const watchedAppliedTaxId = useWatch({ control, name: 'appliedTaxId' });
+  const watchedAppliedTaxName = useWatch({ control, name: 'appliedTaxName' });
+  const watchedAppliedTaxRate = useWatch({ control, name: 'appliedTaxRateBasisPoints' });
+  const watchedUseLegacyItemTax = useWatch({ control, name: 'useLegacyItemTax' });
 
   const calculation = useMemo(
-    () => calculateFormTotals(watchedItems ?? [], watchedCurrency || 'USD'),
-    [watchedCurrency, watchedItems],
+    () =>
+      calculateFormTotals(watchedItems ?? [], watchedCurrency || getPreferredCurrencyCode(), {
+        appliedTaxId: watchedAppliedTaxId ?? NO_TAX_SELECTION_ID,
+        appliedTaxName: watchedAppliedTaxName ?? '',
+        appliedTaxRateBasisPoints: watchedAppliedTaxRate ?? 0,
+        useLegacyItemTax: watchedUseLegacyItemTax === true,
+      }),
+    [
+      watchedAppliedTaxId,
+      watchedAppliedTaxName,
+      watchedAppliedTaxRate,
+      watchedCurrency,
+      watchedItems,
+      watchedUseLegacyItemTax,
+    ],
   );
 
   useEffect(() => {
     if (isEdit) {
       if (invoice != null) {
-        reset(toInvoiceFormValues(invoice));
+        reset(toInvoiceFormValues(invoice, taxSettingsRepository.getCatalog()));
         setBootstrapped(true);
         setMissingBusiness(false);
       }
@@ -157,7 +191,24 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
     useCallback(() => {
       void refreshCustomers();
       void refreshProducts();
-    }, [refreshCustomers, refreshProducts]),
+      setTaxCatalog(taxSettingsRepository.getCatalog());
+      if (!isEdit && bootstrapped && !missingBusiness) {
+        try {
+          const defaults = getDefaultCreateFormValues();
+          setValue('invoiceNumber', defaults.invoiceNumber);
+        } catch {
+          // Keep the current preview if numbering cannot be refreshed.
+        }
+      }
+    }, [
+      bootstrapped,
+      getDefaultCreateFormValues,
+      isEdit,
+      missingBusiness,
+      refreshCustomers,
+      refreshProducts,
+      setValue,
+    ]),
   );
 
   const close = useCallback(() => router.back(), [router]);
@@ -245,9 +296,13 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
     (productId: string) => {
       const product = products.find((entry) => entry.product.id === productId)?.product;
       if (product == null) return;
-      append(productToFormItem(product));
+      const item = productToFormItem(product);
+      if (getValues('useLegacyItemTax') !== true) {
+        item.taxRate = '';
+      }
+      append(item);
     },
-    [append, products],
+    [append, getValues, products],
   );
 
   const handleAddManual = useCallback(() => {
@@ -285,7 +340,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
         description="Add your business details before creating invoices."
         primaryAction={{
           label: 'Business Profile',
-          onPress: () => router.push(ROUTES.businessProfile),
+          onPress: () => openBusinessProfile(),
         }}
         secondaryAction={{ label: 'Cancel', onPress: close }}
       />
@@ -343,7 +398,11 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
               value={field.value}
               readOnly
               accessibilityLabel="Invoice number"
-              helperText="Generated automatically and stays stable while you edit."
+              helperText={
+                isEdit
+                  ? 'This invoice keeps its original number.'
+                  : 'Assigned automatically when you save. Opening or canceling this screen does not use a number.'
+              }
             />
           )}
         />
@@ -490,11 +549,58 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
           )}
         />
 
+        {taxCatalog.enabled || isEdit ? (
+          <InvoiceTaxPicker
+            visible={showTaxPicker}
+            taxes={taxCatalog.enabled ? taxCatalog.taxes : []}
+            selectedId={watchedAppliedTaxId ?? NO_TAX_SELECTION_ID}
+            snapshotLabel={
+              watchedAppliedTaxId === SNAPSHOT_TAX_SELECTION_ID && watchedAppliedTaxName
+                ? formatSavedTaxLabel({
+                    name: watchedAppliedTaxName,
+                    rateBasisPoints: watchedAppliedTaxRate ?? 0,
+                  })
+                : undefined
+            }
+            disabled={!taxCatalog.enabled && watchedAppliedTaxId === NO_TAX_SELECTION_ID}
+            onOpen={() => setShowTaxPicker(true)}
+            onClose={() => setShowTaxPicker(false)}
+            onSelect={(tax) => {
+              if (tax === 'snapshot') {
+                setValue('appliedTaxId', SNAPSHOT_TAX_SELECTION_ID, { shouldDirty: true });
+                setValue('useLegacyItemTax', false, { shouldDirty: true });
+                return;
+              }
+              if (tax == null) {
+                setValue('appliedTaxId', NO_TAX_SELECTION_ID, { shouldDirty: true });
+                setValue('appliedTaxName', '', { shouldDirty: true });
+                setValue('appliedTaxRateBasisPoints', 0, { shouldDirty: true });
+                setValue('useLegacyItemTax', false, { shouldDirty: true });
+                return;
+              }
+              setValue('appliedTaxId', tax.id, { shouldDirty: true });
+              setValue('appliedTaxName', tax.name, { shouldDirty: true });
+              setValue('appliedTaxRateBasisPoints', tax.rateBasisPoints, { shouldDirty: true });
+              setValue('useLegacyItemTax', false, { shouldDirty: true });
+            }}
+          />
+        ) : null}
+
         <InvoiceSummary
           currencyCode={watchedCurrency || 'USD'}
           subtotalMinor={calculation?.subtotalMinor ?? 0}
           discountMinor={calculation?.discountTotalMinor ?? 0}
           taxMinor={calculation?.taxTotalMinor ?? 0}
+          taxLabel={
+            watchedUseLegacyItemTax === true
+              ? 'Tax'
+              : watchedAppliedTaxId === NO_TAX_SELECTION_ID || !watchedAppliedTaxName
+                ? 'Tax'
+                : formatSavedTaxLabel({
+                    name: watchedAppliedTaxName,
+                    rateBasisPoints: watchedAppliedTaxRate ?? 0,
+                  })
+          }
           roundOffMinor={calculation?.roundOffMinor ?? 0}
           grandTotalMinor={calculation?.grandTotalMinor ?? 0}
         />
@@ -559,6 +665,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
       <InvoiceItemEditor
         visible={editingItemId != null}
         item={editingItem}
+        showItemTax={watchedUseLegacyItemTax === true}
         onClose={() => setEditingItemId(null)}
         onSave={handleSaveItem}
       />

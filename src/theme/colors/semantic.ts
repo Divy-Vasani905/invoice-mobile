@@ -7,6 +7,7 @@ export type SemanticColors = {
   primary: string;
   primaryMuted: string;
   primarySubtle: string;
+  primaryLogoBackground: string;
   onPrimary: string;
 
   secondary: string;

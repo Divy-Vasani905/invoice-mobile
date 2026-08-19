@@ -18,6 +18,7 @@ export type { InvoiceItem, ProductSnapshot } from '@/types/models/invoice-item';
 
 export type {
   Invoice,
+  InvoiceAppliedTax,
   InvoiceDocument,
   InvoicePartySnapshot,
   InvoiceTotals,
@@ -39,8 +40,24 @@ export type {
   InvoiceCreditSource,
 } from '@/types/models/invoice-credits';
 
-export type { AppSettings, InvoiceSettings } from '@/types/models/app-settings';
-export { InvoiceNumberingMode, ThemePreference } from '@/types/models/app-settings';
+export type {
+  AppSettings,
+  InvoiceSettings,
+  SavedTaxRate,
+  TaxCatalogSettings,
+} from '@/types/models/app-settings';
+export type { UserPreferences } from '@/types/models/user-preferences';
+export { DEFAULT_USER_PREFERENCES } from '@/types/models/user-preferences';
+export {
+  DEFAULT_INVOICE_NUMBER_PADDING,
+  DEFAULT_INVOICE_PREFIX,
+  DEFAULT_NEXT_INVOICE_NUMBER,
+  DEFAULT_TAX_CATALOG,
+  InvoiceNumberingMode,
+  MAX_INVOICE_NUMBER_PADDING,
+  MIN_INVOICE_NUMBER_PADDING,
+  ThemePreference,
+} from '@/types/models/app-settings';
 
 export type { Advertisement } from '@/types/models/advertisement';
 export {

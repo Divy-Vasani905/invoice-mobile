@@ -40,6 +40,9 @@ export const Modal = memo(function Modal({
       transparent
       visible={visible}
       animationType={animationType}
+      statusBarTranslucent
+      navigationBarTranslucent
+      presentationStyle="overFullScreen"
       onRequestClose={onRequestClose}
     >
       <Pressable

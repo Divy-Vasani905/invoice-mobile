@@ -11,6 +11,7 @@ import type { InvoiceFormItemValues } from '../types/invoice.types';
 export interface InvoiceItemEditorProps {
   visible: boolean;
   item: InvoiceFormItemValues | null;
+  showItemTax?: boolean;
   onClose: () => void;
   onSave: (item: InvoiceFormItemValues) => void;
 }
@@ -18,6 +19,7 @@ export interface InvoiceItemEditorProps {
 export const InvoiceItemEditor = memo(function InvoiceItemEditor({
   visible,
   item,
+  showItemTax = true,
   onClose,
   onSave,
 }: InvoiceItemEditorProps) {
@@ -94,15 +96,17 @@ export const InvoiceItemEditor = memo(function InvoiceItemEditor({
           accessibilityLabel="Unit price"
         />
         <View style={[cStyle.flexRow, cStyle.g12]}>
-          <View style={cStyle.flex1}>
-            <Input
-              label="Tax %"
-              value={draft.taxRate}
-              onChangeText={(taxRate) => setDraft({ ...draft, taxRate })}
-              keyboardType="decimal-pad"
-              accessibilityLabel="Tax rate percent"
-            />
-          </View>
+          {showItemTax ? (
+            <View style={cStyle.flex1}>
+              <Input
+                label="Tax %"
+                value={draft.taxRate}
+                onChangeText={(taxRate) => setDraft({ ...draft, taxRate })}
+                keyboardType="decimal-pad"
+                accessibilityLabel="Tax rate percent"
+              />
+            </View>
+          ) : null}
           <View style={cStyle.flex1}>
             <Input
               label="Discount"
