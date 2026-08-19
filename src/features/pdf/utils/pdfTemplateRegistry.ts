@@ -33,3 +33,11 @@ export function getInvoicePdfTemplate(templateId?: string | null): InvoicePdfTem
 export function isInvoicePdfTemplateId(value: string): value is InvoicePdfTemplateId {
   return TEMPLATES.some((template) => template.id === value);
 }
+
+export function parseInvoicePdfTemplateId(
+  value: string | string[] | undefined,
+): InvoicePdfTemplateId | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw == null || !isInvoicePdfTemplateId(raw)) return null;
+  return raw;
+}

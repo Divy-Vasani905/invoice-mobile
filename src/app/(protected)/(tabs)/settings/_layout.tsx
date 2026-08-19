@@ -27,6 +27,10 @@ export default function SettingsLayout() {
         name="invoice-templates"
         options={createHeaderOptions({ title: 'Invoice Templates' })}
       />
+      <Stack.Screen
+        name="invoice-template-preview/[templateId]"
+        options={createHeaderOptions({ title: 'Template Preview' })}
+      />
       <Stack.Screen name="invoice-number-format" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="currency" options={createHeaderOptions({ title: 'Currency' })} />
       <Stack.Screen name="tax-settings" options={HEADERLESS_SCREEN_OPTIONS} />

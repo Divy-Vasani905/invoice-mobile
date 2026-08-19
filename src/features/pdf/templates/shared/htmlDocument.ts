@@ -2,6 +2,10 @@ import { escapeHtml } from '../../utils/pdfFormatting';
 
 import type { InvoicePdfDocumentModel } from '../../types/pdf.types';
 
+/** Printed invoice paper is always light, independent of app light/dark mode. */
+export const INVOICE_PDF_PAPER_BACKGROUND = '#ffffff';
+export const INVOICE_PDF_INK_COLOR = '#111827';
+
 export function renderHtmlDocument(options: {
   title: string;
   styles: string;
@@ -19,11 +23,11 @@ export function renderHtmlDocument(options: {
     html, body {
       margin: 0;
       padding: 0;
-      color: #111827;
+      color: ${INVOICE_PDF_INK_COLOR};
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       font-size: 11px;
       line-height: 1.45;
-      background: #ffffff;
+      background: ${INVOICE_PDF_PAPER_BACKGROUND};
     }
     img { max-width: 100%; }
     table { width: 100%; border-collapse: collapse; }

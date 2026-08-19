@@ -1,3 +1,5 @@
+import type { InvoicePdfTemplateId } from '@/features/pdf/types/pdf.types';
+
 import type { Href } from 'expo-router';
 
 /**
@@ -31,6 +33,8 @@ export const ROUTES = {
   businessForm: '/settings/business-form' as Href,
   invoiceSettings: '/settings/invoice-settings' as Href,
   invoiceTemplates: '/settings/invoice-templates' as Href,
+  invoiceTemplatePreview: (templateId: InvoicePdfTemplateId): Href =>
+    `/settings/invoice-template-preview/${templateId}` as Href,
   invoiceNumberFormat: '/settings/invoice-number-format' as Href,
   currencySettings: '/settings/currency' as Href,
   taxSettings: '/settings/tax-settings' as Href,
