@@ -1,3 +1,4 @@
+import { NO_TAX_SELECTION_ID, SNAPSHOT_TAX_SELECTION_ID } from '@/features/tax/utils/tax.utils';
 import {
   DiscountType,
   InvoiceCalculationEngine,
@@ -6,10 +7,6 @@ import {
   type TaxDefinition,
 } from '@/services/invoice/calculation';
 import { InvoiceNumberGenerator } from '@/services/invoice/InvoiceNumberGenerator';
-import {
-  NO_TAX_SELECTION_ID,
-  SNAPSHOT_TAX_SELECTION_ID,
-} from '@/features/tax/utils/tax.utils';
 import type { BadgeVariant } from '@/theme';
 import {
   InvoiceStatus,
@@ -376,7 +373,8 @@ export function buildAppliedTaxSnapshot(
   if (definition == null) return null;
   return {
     taxId:
-      values.appliedTaxId === SNAPSHOT_TAX_SELECTION_ID || values.appliedTaxId === NO_TAX_SELECTION_ID
+      values.appliedTaxId === SNAPSHOT_TAX_SELECTION_ID ||
+      values.appliedTaxId === NO_TAX_SELECTION_ID
         ? undefined
         : values.appliedTaxId,
     name: definition.name,

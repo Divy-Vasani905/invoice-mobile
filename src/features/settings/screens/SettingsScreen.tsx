@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Share, View } from 'react-native';
 
+import { Button } from '@/components/Button';
 import { Modal } from '@/components/feedback/Modal';
 import { showToast } from '@/components/feedback/Toast';
 import { Switch } from '@/components/form/Switch';
@@ -11,6 +12,16 @@ import { Header } from '@/components/layout/Header';
 import { ThemedText } from '@/components/themed-text';
 import { invoiceFeatureRepository } from '@/features/invoice/repositories/InvoiceRepository';
 import { ROUTES } from '@/navigation';
+import { queryClient } from '@/providers/query-client';
+import {
+  BackupSaveError,
+  BackupShareError,
+  BackupUserCancelledError,
+  exportBackup,
+  saveBackupToDevice,
+  shareBackup,
+  type CreatedBackupFile,
+} from '@/services/backup';
 import { useUserPreferencesStore } from '@/stores/user-preferences';
 import { cStyle, useTheme, type ThemePreference } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
@@ -50,12 +61,83 @@ export function SettingsScreen() {
   const { theme, preference, setThemePreference } = useTheme();
   const [autoBackupReminder, setAutoBackupReminder] = useState(true);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [isExportingBackup, setIsExportingBackup] = useState(false);
+  const [backupReadyFile, setBackupReadyFile] = useState<CreatedBackupFile | null>(null);
+  const [backupAction, setBackupAction] = useState<'save' | 'share' | null>(null);
 
   const currencyCode = useUserPreferencesStore((state) => state.currencyCode);
   const resetOnboarding = useUserPreferencesStore((state) => state.resetOnboarding);
   const appVersion = getAppVersion();
-  const invoiceNumberPreview =
-    invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber;
+  const [invoiceNumberPreview, setInvoiceNumberPreview] = useState(
+    () => invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setInvoiceNumberPreview(
+        invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber,
+      );
+    }, []),
+  );
+
+  const closeBackupReady = useCallback(() => {
+    if (backupAction != null) return;
+    setBackupReadyFile(null);
+  }, [backupAction]);
+
+  const handleExportBackup = useCallback(async () => {
+    if (isExportingBackup) return;
+    setIsExportingBackup(true);
+    try {
+      const backupFile = await exportBackup();
+      setBackupReadyFile(backupFile);
+    } catch {
+      showToast('error', {
+        title: 'Unable to export backup. Please try again.',
+      });
+    } finally {
+      setIsExportingBackup(false);
+    }
+  }, [isExportingBackup]);
+
+  const handleSaveBackup = useCallback(async () => {
+    if (backupReadyFile == null || backupAction != null) return;
+    setBackupAction('save');
+    try {
+      await saveBackupToDevice(backupReadyFile.uri, backupReadyFile.fileName);
+      setBackupReadyFile(null);
+      showToast('success', { title: 'Backup saved successfully' });
+    } catch (error) {
+      if (error instanceof BackupUserCancelledError) return;
+      showToast('error', {
+        title:
+          error instanceof BackupSaveError
+            ? error.message
+            : 'Unable to save backup. Please try again.',
+      });
+    } finally {
+      setBackupAction(null);
+    }
+  }, [backupAction, backupReadyFile]);
+
+  const handleShareBackup = useCallback(async () => {
+    if (backupReadyFile == null || backupAction != null) return;
+    setBackupAction('share');
+    try {
+      await shareBackup(backupReadyFile.uri);
+      setBackupReadyFile(null);
+    } catch (error) {
+      if (error instanceof BackupUserCancelledError) return;
+      showToast('error', {
+        title:
+          error instanceof BackupShareError
+            ? error.message
+            : 'Unable to share backup. Please try again.',
+      });
+    } finally {
+      setBackupAction(null);
+    }
+  }, [backupAction, backupReadyFile]);
 
   const leadingIcon = (name: keyof typeof Ionicons.glyphMap) => (
     <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.backgroundSubtle }]}>
@@ -138,28 +220,31 @@ export function SettingsScreen() {
           />
         </SettingsSection>
 
-        <SettingsSection title="Premium">
-          <SettingsRow
-            label="Go Premium ⭐"
-            tone="premium"
-            leading={premiumIcon}
-            onPress={() => router.push(ROUTES.premium)}
-            accessibilityHint="Opens the premium screen"
-          />
-        </SettingsSection>
+        {!__DEV__ && (
+          <SettingsSection title="Premium">
+            <SettingsRow
+              label="Go Premium ⭐"
+              tone="premium"
+              leading={premiumIcon}
+              onPress={() => router.push(ROUTES.premium)}
+              accessibilityHint="Opens the premium screen"
+            />
+          </SettingsSection>
+        )}
 
         <SettingsSection title="Data & Backup">
           <SettingsRow
-            label="Export Backup"
+            label={isExportingBackup ? 'Creating backup...' : 'Export Backup'}
             leading={leadingIcon('cloud-upload-outline')}
-            onPress={() => router.push(ROUTES.backupRestore)}
-            accessibilityHint="Opens backup and restore"
+            disabled={isExportingBackup}
+            onPress={handleExportBackup}
+            accessibilityHint="Creates a JSON backup of your business data"
           />
           <SettingsRow
             label="Import Backup"
             leading={leadingIcon('cloud-download-outline')}
             onPress={() => router.push(ROUTES.backupRestore)}
-            accessibilityHint="Opens backup and restore"
+            accessibilityHint="Opens import backup to restore data from a JSON file"
           />
           <SettingsRow
             label="Auto Backup Reminder"
@@ -198,9 +283,10 @@ export function SettingsScreen() {
               divider={false}
               onPress={() => {
                 resetOnboarding();
+                queryClient.clear();
                 router.replace(ROUTES.onboarding);
               }}
-              accessibilityHint="Clears country, currency, and onboarding completion for testing"
+              accessibilityHint="Clears onboarding, business profile, customers, products, and invoices for testing"
             />
           </SettingsSection>
         )}
@@ -247,6 +333,41 @@ export function SettingsScreen() {
           Version {appVersion}
         </ThemedText>
       </ScrollView>
+
+      <Modal
+        visible={backupReadyFile != null}
+        title="Backup Ready"
+        description="Your backup has been created successfully. Choose what you want to do with it."
+        closable={backupAction == null}
+        onRequestClose={closeBackupReady}
+        footer={
+          <View style={[cStyle.g8]}>
+            <Button
+              label="Save to Device"
+              loading={backupAction === 'save'}
+              disabled={backupAction != null}
+              onPress={() => {
+                void handleSaveBackup();
+              }}
+            />
+            <Button
+              label="Share Backup"
+              variant="outline"
+              loading={backupAction === 'share'}
+              disabled={backupAction != null}
+              onPress={() => {
+                void handleShareBackup();
+              }}
+            />
+            <Button
+              label="Cancel"
+              variant="ghost"
+              disabled={backupAction != null}
+              onPress={closeBackupReady}
+            />
+          </View>
+        }
+      />
 
       <Modal
         visible={showThemePicker}

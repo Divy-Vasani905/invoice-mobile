@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo } from 'react';
-import { Modal as NativeModal, Pressable, Text, View } from 'react-native';
+import { Modal as NativeModal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Loader } from '@/components/feedback/Loader';
@@ -45,11 +45,7 @@ export const Modal = memo(function Modal({
       presentationStyle="overFullScreen"
       onRequestClose={onRequestClose}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Dismiss dialog"
-        disabled={!closable}
-        onPress={closable ? onRequestClose : undefined}
+      <View
         style={{
           flex: 1,
           alignItems: 'center',
@@ -59,12 +55,19 @@ export const Modal = memo(function Modal({
         }}
       >
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss dialog"
+          disabled={!closable}
+          onPress={closable ? onRequestClose : undefined}
+          style={StyleSheet.absoluteFill}
+        />
+        <View
           accessibilityViewIsModal
-          onPress={() => undefined}
           style={[
             {
               width: '100%',
               maxWidth,
+              maxHeight: '90%',
               gap: theme.cards.layout.gap,
               padding: theme.cards.layout.padding,
               borderRadius: theme.cards.layout.radius,
@@ -107,7 +110,7 @@ export const Modal = memo(function Modal({
               {description}
             </Text>
           )}
-          {children}
+          {children != null && <View style={{ flexShrink: 1, minHeight: 0 }}>{children}</View>}
           {loading && <Loader text="Loading" />}
           {footer ?? (
             <View
@@ -121,8 +124,8 @@ export const Modal = memo(function Modal({
               {primaryAction != null && <Button {...primaryAction} variant={primaryVariant} />}
             </View>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </NativeModal>
   );
 });

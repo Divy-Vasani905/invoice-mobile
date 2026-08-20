@@ -348,9 +348,7 @@ export const InvoicePreviewScreen = memo(function InvoicePreviewScreen({
             subtotalMinor={invoice.totals.subtotalAmount.amountMinor}
             discountMinor={invoice.totals.discountAmount.amountMinor}
             taxMinor={invoice.totals.taxAmount.amountMinor}
-            taxLabel={
-              invoice.appliedTax != null ? formatSavedTaxLabel(invoice.appliedTax) : 'Tax'
-            }
+            taxLabel={invoice.appliedTax != null ? formatSavedTaxLabel(invoice.appliedTax) : 'Tax'}
             roundOffMinor={invoice.totals.roundOffAmount?.amountMinor ?? 0}
             grandTotalMinor={invoice.totals.totalAmount.amountMinor}
           />

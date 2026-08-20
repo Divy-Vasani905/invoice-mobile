@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 
 import { isValidCountryCode, isValidCurrencyCode } from '@/features/preferences/catalog';
-import { businessRepository, userPreferencesRepository } from '@/storage';
+import {
+  businessRepository,
+  customerRepository,
+  invoiceRepository,
+  productRepository,
+  userPreferencesRepository,
+} from '@/storage';
 import { DEFAULT_USER_PREFERENCES, type UserPreferences } from '@/types/models/user-preferences';
 
 export type UserPreferencesState = UserPreferences & {
@@ -112,6 +118,10 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
   },
 
   resetOnboarding: () => {
+    customerRepository.clear();
+    productRepository.clear();
+    invoiceRepository.clear();
+    businessRepository.delete();
     const next = { ...DEFAULT_USER_PREFERENCES };
     persist(next);
     set(next);

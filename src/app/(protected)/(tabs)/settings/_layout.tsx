@@ -35,10 +35,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="currency" options={createHeaderOptions({ title: 'Currency' })} />
       <Stack.Screen name="tax-settings" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="tax-form" options={HEADERLESS_SCREEN_OPTIONS} />
-      <Stack.Screen
-        name="backup-restore"
-        options={createHeaderOptions({ title: 'Backup & Restore' })}
-      />
+      <Stack.Screen name="backup-restore" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen
         name="privacy-policy"
         options={createHeaderOptions({ title: 'Privacy Policy' })}

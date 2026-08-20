@@ -42,6 +42,10 @@ export class JsonRepository<TEntity extends EntityIdentity> implements CrudRepos
     this.write(records);
   }
 
+  public clear(): void {
+    this.write({});
+  }
+
   private read(): Record<string, TEntity> {
     const value = this.storage.getString(this.storageKey);
     return value == null ? {} : (JSON.parse(value) as Record<string, TEntity>);

@@ -60,9 +60,7 @@ export function nextRetryDelayMs(attempt: number, userIsWaiting: boolean): numbe
  * Fullscreen ads must not present over a dialog, keyboard, or in-flight navigation.
  * Otherwise AdMob can render inside the current window (clipped) or overflow the display.
  */
-export function waitForFullscreenAdSlot(
-  settleMs = FULLSCREEN_AD_OVERLAY_SETTLE_MS,
-): Promise<void> {
+export function waitForFullscreenAdSlot(settleMs = FULLSCREEN_AD_OVERLAY_SETTLE_MS): Promise<void> {
   Keyboard.dismiss();
   return new Promise((resolve) => {
     InteractionManager.runAfterInteractions(() => {

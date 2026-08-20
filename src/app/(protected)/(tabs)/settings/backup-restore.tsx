@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { BackupRestoreScreen } from '@/features/settings/screens/BackupRestoreScreen';
 
 export default function BackupRestoreRoute() {
-  return <ScreenPlaceholder name="Backup & Restore" />;
+  return <BackupRestoreScreen />;
 }

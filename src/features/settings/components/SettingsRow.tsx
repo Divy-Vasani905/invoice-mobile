@@ -15,6 +15,7 @@ export interface SettingsRowProps {
   trailing?: ReactNode;
   divider?: boolean;
   tone?: SettingsRowTone;
+  disabled?: boolean;
   onPress?: () => void;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -27,6 +28,7 @@ export function SettingsRow({
   trailing,
   divider = true,
   tone = 'default',
+  disabled = false,
   onPress,
   accessibilityLabel,
   accessibilityHint,
@@ -69,6 +71,7 @@ export function SettingsRow({
       trailing={resolvedTrailing}
       divider={divider}
       pressable={onPress != null}
+      disabled={disabled}
       onPress={onPress}
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
