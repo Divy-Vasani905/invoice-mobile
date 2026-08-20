@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 export interface SettingsRowProps {
   label: string;
   value?: string;
+  description?: string;
   leading?: ReactNode;
   trailing?: ReactNode;
   divider?: boolean;
@@ -24,6 +25,7 @@ export interface SettingsRowProps {
 export function SettingsRow({
   label,
   value,
+  description,
   leading,
   trailing,
   divider = true,
@@ -67,13 +69,14 @@ export function SettingsRow({
     <ListItem
       title={label}
       titleNumberOfLines={1}
+      description={description}
       leading={leading}
       trailing={resolvedTrailing}
       divider={divider}
       pressable={onPress != null}
       disabled={disabled}
       onPress={onPress}
-      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityLabel={onPress != null ? (accessibilityLabel ?? label) : accessibilityLabel}
       accessibilityHint={accessibilityHint}
       style={isPremium ? { backgroundColor: theme.colors.premiumSubtle } : undefined}
     />

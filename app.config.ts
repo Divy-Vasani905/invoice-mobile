@@ -97,6 +97,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sharing',
+    'expo-notifications',
+    './plugins/with-notification-large-icon',
     '@react-native-firebase/app',
     [
       '@react-native-firebase/analytics',

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Share, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { AppState, Linking, Pressable, ScrollView, Share, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/feedback/Modal';
@@ -22,6 +22,14 @@ import {
   shareBackup,
   type CreatedBackupFile,
 } from '@/services/backup';
+import {
+  cancelAutoBackupReminder,
+  disableAutoBackupReminder,
+  enableAutoBackupReminder,
+  getNotificationPermissionStatus,
+  openNotificationSettings,
+  sendTestAutoBackupReminder,
+} from '@/services/notifications';
 import { useUserPreferencesStore } from '@/stores/user-preferences';
 import { cStyle, useTheme, type ThemePreference } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
@@ -35,6 +43,13 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Dark' },
   { value: 'system', label: 'System' },
 ];
+
+const BACKUP_REMINDER_DESCRIPTION = 'Get reminded to create a backup of your data.';
+const NOTIFICATIONS_DISABLED_DESCRIPTION =
+  'Notifications are disabled. Enable them in device settings to receive backup reminders.';
+const NOTIFICATIONS_DISABLED_TITLE = 'Notifications are disabled';
+const NOTIFICATIONS_DISABLED_MESSAGE =
+  'Easy Invoice Maker needs notification permission to remind you about backups. You can enable notifications from your device settings.';
 
 function themePreferenceLabel(preference: ThemePreference): string {
   if (preference === 'system') return 'System';
@@ -59,26 +74,46 @@ function currencyDisplayLabel(currencyCode: string): string {
 export function SettingsScreen() {
   const router = useRouter();
   const { theme, preference, setThemePreference } = useTheme();
-  const [autoBackupReminder, setAutoBackupReminder] = useState(true);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showNotificationSettingsHelp, setShowNotificationSettingsHelp] = useState(false);
+  const [isUpdatingReminder, setIsUpdatingReminder] = useState(false);
+  const [notificationPermissionGranted, setNotificationPermissionGranted] = useState(false);
   const [isExportingBackup, setIsExportingBackup] = useState(false);
   const [backupReadyFile, setBackupReadyFile] = useState<CreatedBackupFile | null>(null);
   const [backupAction, setBackupAction] = useState<'save' | 'share' | null>(null);
 
   const currencyCode = useUserPreferencesStore((state) => state.currencyCode);
   const resetOnboarding = useUserPreferencesStore((state) => state.resetOnboarding);
+  const autoBackupReminderEnabled = useUserPreferencesStore(
+    (state) => state.autoBackupReminderEnabled,
+  );
   const appVersion = getAppVersion();
   const [invoiceNumberPreview, setInvoiceNumberPreview] = useState(
     () => invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber,
   );
+
+  const refreshNotificationPermission = useCallback(async () => {
+    const status = await getNotificationPermissionStatus();
+    setNotificationPermissionGranted(status.granted);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       setInvoiceNumberPreview(
         invoiceFeatureRepository.getInvoiceNumberFormat().nextAvailableNumber,
       );
-    }, []),
+      void refreshNotificationPermission();
+    }, [refreshNotificationPermission]),
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void refreshNotificationPermission();
+      }
+    });
+    return () => subscription.remove();
+  }, [refreshNotificationPermission]);
 
   const closeBackupReady = useCallback(() => {
     if (backupAction != null) return;
@@ -138,6 +173,43 @@ export function SettingsScreen() {
       setBackupAction(null);
     }
   }, [backupAction, backupReadyFile]);
+
+  const reminderSwitchValue = notificationPermissionGranted ? autoBackupReminderEnabled : false;
+
+  const handleAutoBackupReminderChange = useCallback(
+    async (nextEnabled: boolean) => {
+      if (isUpdatingReminder) return;
+      setIsUpdatingReminder(true);
+      try {
+        if (!nextEnabled) {
+          await disableAutoBackupReminder();
+          await refreshNotificationPermission();
+          return;
+        }
+
+        const result = await enableAutoBackupReminder();
+        await refreshNotificationPermission();
+
+        if (result.outcome === 'enabled') {
+          return;
+        }
+        if (result.outcome === 'blocked' || result.outcome === 'denied') {
+          setShowNotificationSettingsHelp(true);
+          return;
+        }
+        showToast('error', {
+          title: 'Unable to enable backup reminder. Please try again.',
+        });
+      } finally {
+        setIsUpdatingReminder(false);
+      }
+    },
+    [isUpdatingReminder, refreshNotificationPermission],
+  );
+
+  const handleSendFeedbackPress = async () => {
+    await Linking.openURL('https://tally.so/r/D4RZrp');
+  };
 
   const leadingIcon = (name: keyof typeof Ionicons.glyphMap) => (
     <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.backgroundSubtle }]}>
@@ -248,15 +320,22 @@ export function SettingsScreen() {
           />
           <SettingsRow
             label="Auto Backup Reminder"
+            description={
+              autoBackupReminderEnabled && !notificationPermissionGranted
+                ? NOTIFICATIONS_DISABLED_DESCRIPTION
+                : BACKUP_REMINDER_DESCRIPTION
+            }
             leading={leadingIcon('alarm-outline')}
             trailing={
               <Switch
-                accessibilityLabel="Auto backup reminder"
-                value={autoBackupReminder}
-                onValueChange={setAutoBackupReminder}
+                accessibilityLabel="Auto Backup Reminder"
+                accessibilityHint={BACKUP_REMINDER_DESCRIPTION}
+                value={reminderSwitchValue}
+                onValueChange={(nextEnabled) => {
+                  void handleAutoBackupReminderChange(nextEnabled);
+                }}
               />
             }
-            accessibilityLabel="Auto Backup Reminder"
           />
         </SettingsSection>
 
@@ -270,7 +349,7 @@ export function SettingsScreen() {
             label="Send Feedback"
             leading={leadingIcon('chatbox-outline')}
             divider={false}
-            onPress={() => undefined}
+            onPress={() => handleSendFeedbackPress()}
             accessibilityHint="Opens the feedback form"
           />
         </SettingsSection>
@@ -278,10 +357,26 @@ export function SettingsScreen() {
         {__DEV__ && (
           <SettingsSection title="Developer">
             <SettingsRow
+              label="Send test backup reminder"
+              leading={leadingIcon('notifications-outline')}
+              onPress={() => {
+                void (async () => {
+                  const sent = await sendTestAutoBackupReminder();
+                  showToast(sent ? 'success' : 'error', {
+                    title: sent
+                      ? 'Test backup reminder sent'
+                      : 'Allow notifications to send a test reminder.',
+                  });
+                })();
+              }}
+              accessibilityHint="Shows the backup reminder notification immediately for testing"
+            />
+            <SettingsRow
               label="Reset onboarding"
               leading={leadingIcon('refresh-outline')}
               divider={false}
               onPress={() => {
+                void cancelAutoBackupReminder();
                 resetOnboarding();
                 queryClient.clear();
                 router.replace(ROUTES.onboarding);
@@ -333,6 +428,24 @@ export function SettingsScreen() {
           Version {appVersion}
         </ThemedText>
       </ScrollView>
+
+      <Modal
+        visible={showNotificationSettingsHelp}
+        title={NOTIFICATIONS_DISABLED_TITLE}
+        description={NOTIFICATIONS_DISABLED_MESSAGE}
+        onRequestClose={() => setShowNotificationSettingsHelp(false)}
+        primaryAction={{
+          label: 'Open Settings',
+          onPress: () => {
+            setShowNotificationSettingsHelp(false);
+            void openNotificationSettings();
+          },
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onPress: () => setShowNotificationSettingsHelp(false),
+        }}
+      />
 
       <Modal
         visible={backupReadyFile != null}

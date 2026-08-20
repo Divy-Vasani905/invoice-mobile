@@ -16,6 +16,7 @@ import { ThemedText } from '@/components/themed-text';
 import { InvoiceCreditIndicator, InvoiceUsageModal, useInvoiceCredits } from '@/features/credits';
 import { ProductCard } from '@/features/product/components/ProductCard';
 import type { ProductListItem } from '@/features/product/types/product.types';
+import { PostOnboardingNotificationPermission } from '@/features/settings/components/PostOnboardingNotificationPermission';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
@@ -397,6 +398,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
       />
 
       <InvoiceUsageModal {...usageModalProps} />
+      <PostOnboardingNotificationPermission />
     </View>
   );
 });

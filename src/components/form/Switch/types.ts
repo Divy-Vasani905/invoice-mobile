@@ -7,5 +7,6 @@ export interface SwitchProps {
   description?: string;
   disabled?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
 }

@@ -15,25 +15,57 @@ export type UserPreferencesState = UserPreferences & {
   completeOnboarding: (countryCode: string, currencyCode: string) => void;
   setCountryCode: (countryCode: string) => void;
   setCurrencyCode: (currencyCode: string) => void;
+  setAutoBackupReminderEnabled: (enabled: boolean) => void;
+  markAutoBackupReminderIntroShown: () => void;
   resetOnboarding: () => void;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value != null && typeof value === 'object';
+}
+
+function normalizePreferences(stored: UserPreferences | Record<string, unknown> | null): {
+  preferences: UserPreferences;
+  shouldPersist: boolean;
+} {
+  if (stored == null || !isRecord(stored)) {
+    return { preferences: { ...DEFAULT_USER_PREFERENCES }, shouldPersist: false };
+  }
+
+  const hasIntroKey = Object.prototype.hasOwnProperty.call(stored, 'autoBackupReminderIntroShown');
+  const isExistingOnboardedUser = stored.onboardingCompleted === true && !hasIntroKey;
+
+  const countryCode =
+    typeof stored.countryCode === 'string' && stored.countryCode.length > 0
+      ? stored.countryCode
+      : null;
+  const currencyCode =
+    typeof stored.currencyCode === 'string' && stored.currencyCode.length > 0
+      ? stored.currencyCode
+      : null;
+
+  return {
+    preferences: {
+      onboardingCompleted: stored.onboardingCompleted === true,
+      countryCode,
+      currencyCode,
+      autoBackupReminderEnabled: stored.autoBackupReminderEnabled === true,
+      autoBackupReminderIntroShown:
+        stored.autoBackupReminderIntroShown === true || isExistingOnboardedUser,
+    },
+    shouldPersist:
+      !hasIntroKey || !Object.prototype.hasOwnProperty.call(stored, 'autoBackupReminderEnabled'),
+  };
+}
 
 function readPersistedPreferences(): UserPreferences {
   try {
     const stored = userPreferencesRepository.get();
-    if (stored == null) return { ...DEFAULT_USER_PREFERENCES };
-
-    return {
-      onboardingCompleted: stored.onboardingCompleted === true,
-      countryCode:
-        typeof stored.countryCode === 'string' && stored.countryCode.length > 0
-          ? stored.countryCode
-          : null,
-      currencyCode:
-        typeof stored.currencyCode === 'string' && stored.currencyCode.length > 0
-          ? stored.currencyCode
-          : null,
-    };
+    const { preferences, shouldPersist } = normalizePreferences(stored);
+    if (shouldPersist) {
+      persist(preferences);
+    }
+    return preferences;
   } catch {
     return { ...DEFAULT_USER_PREFERENCES };
   }
@@ -41,6 +73,21 @@ function readPersistedPreferences(): UserPreferences {
 
 function persist(preferences: UserPreferences): void {
   userPreferencesRepository.update(preferences);
+}
+
+function withCurrent(
+  get: () => UserPreferencesState,
+  patch: Partial<UserPreferences>,
+): UserPreferences {
+  const current = get();
+  return {
+    onboardingCompleted: patch.onboardingCompleted ?? current.onboardingCompleted,
+    countryCode: patch.countryCode !== undefined ? patch.countryCode : current.countryCode,
+    currencyCode: patch.currencyCode !== undefined ? patch.currencyCode : current.currencyCode,
+    autoBackupReminderEnabled: patch.autoBackupReminderEnabled ?? current.autoBackupReminderEnabled,
+    autoBackupReminderIntroShown:
+      patch.autoBackupReminderIntroShown ?? current.autoBackupReminderIntroShown,
+  };
 }
 
 function syncBusinessCurrency(currencyCode: string): void {
@@ -70,11 +117,13 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
       throw new Error('Invalid country or currency.');
     }
 
-    const next: UserPreferences = {
+    const next = withCurrent(get, {
       onboardingCompleted: true,
       countryCode: nextCountry,
       currencyCode: nextCurrency,
-    };
+      autoBackupReminderEnabled: false,
+      autoBackupReminderIntroShown: false,
+    });
     persist(next);
     try {
       syncBusinessCurrency(nextCurrency);
@@ -89,11 +138,7 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
     if (!isValidCountryCode(nextCountry)) {
       throw new Error('Invalid country.');
     }
-    const next: UserPreferences = {
-      onboardingCompleted: get().onboardingCompleted,
-      countryCode: nextCountry,
-      currencyCode: get().currencyCode,
-    };
+    const next = withCurrent(get, { countryCode: nextCountry });
     persist(next);
     set({ countryCode: nextCountry });
   },
@@ -103,11 +148,7 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
     if (!isValidCurrencyCode(nextCurrency)) {
       throw new Error('Invalid currency.');
     }
-    const next: UserPreferences = {
-      onboardingCompleted: get().onboardingCompleted,
-      countryCode: get().countryCode,
-      currencyCode: nextCurrency,
-    };
+    const next = withCurrent(get, { currencyCode: nextCurrency });
     persist(next);
     try {
       syncBusinessCurrency(nextCurrency);
@@ -115,6 +156,18 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
       // Preference save already succeeded; business sync is best-effort.
     }
     set({ currencyCode: nextCurrency });
+  },
+
+  setAutoBackupReminderEnabled: (enabled) => {
+    const next = withCurrent(get, { autoBackupReminderEnabled: enabled });
+    persist(next);
+    set({ autoBackupReminderEnabled: enabled });
+  },
+
+  markAutoBackupReminderIntroShown: () => {
+    const next = withCurrent(get, { autoBackupReminderIntroShown: true });
+    persist(next);
+    set({ autoBackupReminderIntroShown: true });
   },
 
   resetOnboarding: () => {

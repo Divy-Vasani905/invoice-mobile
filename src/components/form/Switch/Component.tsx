@@ -16,6 +16,7 @@ export const Switch = memo(function Switch({
   description,
   disabled = false,
   accessibilityLabel,
+  accessibilityHint,
   style,
 }: SwitchProps) {
   const { theme } = useTheme();
@@ -48,7 +49,10 @@ export const Switch = memo(function Switch({
         </View>
       )}
       <NativeSwitch
+        accessibilityRole="switch"
         accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ checked: value, disabled }}
         disabled={disabled}
         onValueChange={onValueChange}
         trackColor={{ false: theme.colors.backgroundSubtle, true: theme.colors.primary }}
