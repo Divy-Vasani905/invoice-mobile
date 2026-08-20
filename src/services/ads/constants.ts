@@ -8,3 +8,6 @@ export const INTERSTITIAL_EVERY_N_INVOICES = DEFAULT_MONETIZATION_CONFIG.interst
 
 /** @deprecated Prefer monetizationConfig.rewardedDailyLimit via Remote Config store. */
 export const REWARDED_DAILY_LIMIT = DEFAULT_MONETIZATION_CONFIG.rewardedDailyLimit;
+
+/** Preload fullscreen ads only when remaining credits drop below this count. */
+export const AD_PRELOAD_CREDIT_THRESHOLD = 3;

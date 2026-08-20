@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
+import { preloadAdsIfLowOnCredits } from '@/services/ads/preloadAds';
 import { useRemoteConfigStore } from '@/stores/remote-config/remote-config-store';
 
 import {
@@ -38,6 +39,11 @@ export function useInvoiceCredits() {
     () => (snapshot != null ? formatResetDate(snapshot.nextResetAt) : ''),
     [snapshot],
   );
+
+  useEffect(() => {
+    if (snapshot == null) return;
+    preloadAdsIfLowOnCredits(snapshot.totalAvailable, snapshot.isPremium);
+  }, [snapshot?.isPremium, snapshot?.totalAvailable]);
 
   return {
     snapshot,

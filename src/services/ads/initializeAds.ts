@@ -5,15 +5,13 @@ import { admobConfig, logAdMobEnvironment } from '@/constants/ads';
 import { CrashlyticsService } from '@/services/crashlytics';
 
 import { logAdEvent } from './adLoadUtils';
-import { InterstitialAdService } from './InterstitialAdService';
-import { RewardedAdService } from './RewardedAdService';
 
 let initialized = false;
 let initializing: Promise<boolean> | null = null;
 
 /**
  * Initializes the Google Mobile Ads SDK once (dev client / production native builds).
- * Safe no-op on web. Preloads interstitial + rewarded after a successful init.
+ * Safe no-op on web. Does not preload ads; those load when credits are low.
  */
 export async function initializeAds(): Promise<boolean> {
   if (initialized) return true;
@@ -41,9 +39,6 @@ export async function initializeAds(): Promise<boolean> {
       await mobileAds().initialize();
       initialized = true;
       logAdEvent('[AdMob] SDK initialized');
-
-      InterstitialAdService.preload();
-      RewardedAdService.preload();
 
       return true;
     } catch (error) {

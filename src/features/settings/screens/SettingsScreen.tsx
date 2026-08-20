@@ -210,6 +210,11 @@ export function SettingsScreen() {
   const handleSendFeedbackPress = async () => {
     await Linking.openURL('https://tally.so/r/D4RZrp');
   };
+  const handlePrivacyPress = async () => {
+    await Linking.openURL(
+      'https://rachivinfotech.pages.dev/apps/easy-invoice-maker/privacy-policy',
+    );
+  };
 
   const leadingIcon = (name: keyof typeof Ionicons.glyphMap) => (
     <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.backgroundSubtle }]}>
@@ -292,7 +297,7 @@ export function SettingsScreen() {
           />
         </SettingsSection>
 
-        {!__DEV__ && (
+        {__DEV__ && (
           <SettingsSection title="Premium">
             <SettingsRow
               label="Go Premium ⭐"
@@ -343,7 +348,7 @@ export function SettingsScreen() {
           <SettingsRow
             label="Privacy Policy"
             leading={leadingIcon('shield-checkmark-outline')}
-            onPress={() => router.push(ROUTES.privacyPolicy)}
+            onPress={() => handlePrivacyPress()}
           />
           <SettingsRow
             label="Send Feedback"
@@ -387,11 +392,13 @@ export function SettingsScreen() {
         )}
 
         <SettingsSection title="Others">
-          <SettingsRow
-            label="Terms"
-            leading={leadingIcon('document-outline')}
-            onPress={() => router.push(ROUTES.termsOfService)}
-          />
+          {__DEV__ && (
+            <SettingsRow
+              label="Terms"
+              leading={leadingIcon('document-outline')}
+              onPress={() => router.push(ROUTES.termsOfService)}
+            />
+          )}
           <SettingsRow
             label="Rate App"
             leading={leadingIcon('star-outline')}
