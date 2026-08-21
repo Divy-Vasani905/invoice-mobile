@@ -36,7 +36,6 @@ export const ROUTES = {
   invoiceTemplatePreview: (templateId: InvoicePdfTemplateId): Href =>
     `/settings/invoice-template-preview/${templateId}` as Href,
   invoiceNumberFormat: '/settings/invoice-number-format' as Href,
-  currencySettings: '/settings/currency' as Href,
   taxSettings: '/settings/tax-settings' as Href,
   taxForm: (taxId?: string): Href =>
     (taxId == null ? '/settings/tax-form' : `/settings/tax-form?taxId=${taxId}`) as Href,

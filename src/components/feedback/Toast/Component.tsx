@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Text, View } from 'react-native';
+import { Easing, Text, View } from 'react-native';
 import ToastMessage from 'react-native-toast-message';
 
 import { useTheme } from '@/theme';
@@ -12,6 +12,18 @@ export const ToastHost = memo(function ToastHost() {
 
   return (
     <ToastMessage
+      animationConfig={{
+        enter: {
+          type: 'timing',
+          duration: theme.animation.duration.slow,
+          easing: Easing.out(Easing.cubic),
+        },
+        exit: {
+          type: 'timing',
+          duration: theme.animation.duration.normal,
+          easing: Easing.in(Easing.cubic),
+        },
+      }}
       config={{
         success: (props) => <ToastCard {...props} variant="success" />,
         error: (props) => <ToastCard {...props} variant="error" />,
@@ -38,24 +50,21 @@ export const ToastHost = memo(function ToastHost() {
           : variant === 'warning'
             ? theme.colors.warning
             : theme.colors.info;
-    const background =
-      variant === 'success'
-        ? theme.colors.successSubtle
-        : variant === 'error'
-          ? theme.colors.dangerSubtle
-          : variant === 'warning'
-            ? theme.colors.warningSubtle
-            : theme.colors.infoSubtle;
-
     return (
       <View
         accessibilityRole="alert"
-        style={{
-          gap: theme.inputs.layout.gap,
-          padding: theme.cards.layout.paddingCompact,
-          borderRadius: theme.cards.layout.radius,
-          backgroundColor: background,
-        }}
+        style={[
+          theme.elevation.md,
+          {
+            gap: theme.inputs.layout.gap,
+            padding: theme.cards.layout.paddingCompact,
+            borderRadius: theme.cards.layout.radius,
+            backgroundColor: theme.colors.surfaceRaised,
+            borderWidth: 1,
+            borderColor: color,
+            overflow: 'hidden',
+          },
+        ]}
       >
         {text1 != null && <Text style={[theme.typography.label, { color }]}>{text1}</Text>}
         {text2 != null && (

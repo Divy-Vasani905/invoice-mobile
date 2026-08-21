@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { memo, useCallback } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
+// import { FlatList } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -76,13 +78,14 @@ export const CustomersScreen = memo(function CustomersScreen() {
           />
         }
       />
-      <FlatList
+      <FlashList
         data={customers}
         renderItem={renderCustomer}
         keyExtractor={keyExtractor}
+        drawDistance={250}
+        ItemSeparatorComponent={CustomerListGap}
+        ListHeaderComponentStyle={{ marginBottom: cStyleValues.spacing.md }}
         contentContainerStyle={{
-          flexGrow: 1,
-          gap: cStyleValues.spacing.md,
           paddingHorizontal: cStyleValues.spacing.lg,
           paddingTop: cStyleValues.spacing.md,
           paddingBottom: cStyleValues.spacing['7xl'],
@@ -128,11 +131,11 @@ export const CustomersScreen = memo(function CustomersScreen() {
         }
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={7}
-        removeClippedSubviews
       />
     </View>
   );
 });
+
+function CustomerListGap() {
+  return <View style={{ height: cStyleValues.spacing.md }} />;
+}

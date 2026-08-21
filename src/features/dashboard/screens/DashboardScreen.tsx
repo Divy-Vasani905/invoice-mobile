@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/Badge';
@@ -353,16 +354,20 @@ export const DashboardScreen = memo(function DashboardScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <FlatList
+      <FlashList
         data={listData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        extraData={recentMode}
+        getItemType={() => (recentMode === 'products' ? 'product' : 'invoice')}
+        drawDistance={250}
+        ItemSeparatorComponent={DashboardListGap}
+        ListHeaderComponentStyle={{ marginBottom: cStyleValues.spacing.md }}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: insets.bottom + cStyleValues.spacing['2xl'],
-          gap: cStyleValues.spacing.md,
         }}
         refreshControl={
           <RefreshControl
@@ -402,3 +407,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
     </View>
   );
 });
+
+function DashboardListGap() {
+  return <View style={{ height: cStyleValues.spacing.md }} />;
+}

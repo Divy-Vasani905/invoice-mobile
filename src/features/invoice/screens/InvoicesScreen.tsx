@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -102,13 +103,13 @@ export const InvoicesScreen = memo(function InvoicesScreen() {
           />
         }
       />
-      <FlatList
+      <FlashList
         data={invoices}
         renderItem={renderInvoice}
         keyExtractor={keyExtractor}
         ListHeaderComponent={listHeader}
+        drawDistance={250}
         contentContainerStyle={{
-          flexGrow: 1,
           paddingHorizontal: cStyleValues.spacing.lg,
           paddingTop: cStyleValues.spacing.md,
           paddingBottom: cStyleValues.spacing['7xl'],

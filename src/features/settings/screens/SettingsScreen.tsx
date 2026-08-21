@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, Linking, Pressable, ScrollView, Share, View } from 'react-native';
 
 import { Button } from '@/components/Button';
@@ -11,6 +11,8 @@ import { IconButton } from '@/components/IconButton';
 import { Header } from '@/components/layout/Header';
 import { ThemedText } from '@/components/themed-text';
 import { invoiceFeatureRepository } from '@/features/invoice/repositories/InvoiceRepository';
+import { getCurrencyOptions } from '@/features/preferences/catalog';
+import { SearchablePickerModal } from '@/features/preferences/components/SearchablePickerModal';
 import { ROUTES } from '@/navigation';
 import { queryClient } from '@/providers/query-client';
 import {
@@ -75,6 +77,7 @@ export function SettingsScreen() {
   const router = useRouter();
   const { theme, preference, setThemePreference } = useTheme();
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showNotificationSettingsHelp, setShowNotificationSettingsHelp] = useState(false);
   const [isUpdatingReminder, setIsUpdatingReminder] = useState(false);
   const [notificationPermissionGranted, setNotificationPermissionGranted] = useState(false);
@@ -83,6 +86,7 @@ export function SettingsScreen() {
   const [backupAction, setBackupAction] = useState<'save' | 'share' | null>(null);
 
   const currencyCode = useUserPreferencesStore((state) => state.currencyCode);
+  const setCurrencyCode = useUserPreferencesStore((state) => state.setCurrencyCode);
   const resetOnboarding = useUserPreferencesStore((state) => state.resetOnboarding);
   const autoBackupReminderEnabled = useUserPreferencesStore(
     (state) => state.autoBackupReminderEnabled,
@@ -173,6 +177,15 @@ export function SettingsScreen() {
       setBackupAction(null);
     }
   }, [backupAction, backupReadyFile]);
+
+  const currencyItems = useMemo(
+    () =>
+      getCurrencyOptions().map((currency) => ({
+        id: currency.code,
+        title: `${currency.symbol}  ${currency.code} — ${currency.name}`,
+      })),
+    [],
+  );
 
   const reminderSwitchValue = notificationPermissionGranted ? autoBackupReminderEnabled : false;
 
@@ -275,8 +288,8 @@ export function SettingsScreen() {
             label="Currency"
             value={currencyCode == null ? 'Not set' : currencyDisplayLabel(currencyCode)}
             leading={leadingIcon('cash-outline')}
-            onPress={() => router.push(ROUTES.currencySettings)}
-            accessibilityHint="Opens currency settings"
+            onPress={() => setShowCurrencyPicker(true)}
+            accessibilityHint="Opens the currency picker"
           />
           <SettingsRow
             label="Tax Settings"
@@ -487,6 +500,26 @@ export function SettingsScreen() {
             />
           </View>
         }
+      />
+
+      <SearchablePickerModal
+        visible={showCurrencyPicker}
+        title="Select currency"
+        searchPlaceholder="Search currency..."
+        items={currencyItems}
+        selectedId={currencyCode}
+        onClose={() => setShowCurrencyPicker(false)}
+        onSelect={(code) => {
+          try {
+            setCurrencyCode(code);
+            showToast('success', { title: 'Currency updated' });
+          } catch {
+            showToast('error', {
+              title: 'Could not save currency',
+              message: 'Please try again.',
+            });
+          }
+        }}
       />
 
       <Modal

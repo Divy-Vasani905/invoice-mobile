@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { memo, useCallback } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -58,13 +59,14 @@ export const ProductsScreen = memo(function ProductsScreen() {
   return (
     <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
       <Header title="Products & Services" />
-      <FlatList
+      <FlashList
         data={products}
         renderItem={renderProduct}
         keyExtractor={keyExtractor}
+        drawDistance={250}
+        ItemSeparatorComponent={ProductListGap}
+        ListHeaderComponentStyle={{ marginBottom: cStyleValues.spacing.md }}
         contentContainerStyle={{
-          flexGrow: 1,
-          gap: cStyleValues.spacing.md,
           paddingHorizontal: cStyleValues.spacing.lg,
           paddingTop: cStyleValues.spacing.xs,
           paddingBottom: cStyleValues.spacing['7xl'],
@@ -122,11 +124,11 @@ export const ProductsScreen = memo(function ProductsScreen() {
         }
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={7}
-        removeClippedSubviews
       />
     </View>
   );
 });
+
+function ProductListGap() {
+  return <View style={{ height: cStyleValues.spacing.md }} />;
+}

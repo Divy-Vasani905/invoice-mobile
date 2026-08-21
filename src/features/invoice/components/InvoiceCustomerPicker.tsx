@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlashList } from '@shopify/flash-list';
 import { memo, useCallback } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -89,11 +90,13 @@ export const InvoiceCustomerPicker = memo(function InvoiceCustomerPicker({
           placeholder="Search customers"
           accessibilityLabel="Search customers"
         />
-        <FlatList
+        <FlashList
           data={customers}
           keyExtractor={(item) => item.customer.id}
           renderItem={renderItem}
+          drawDistance={160}
           keyboardShouldPersistTaps="handled"
+          style={{ minHeight: 180, maxHeight: 280 }}
           ListEmptyComponent={
             <EmptyState
               variant={hasNoSearchResults ? 'search' : 'default'}

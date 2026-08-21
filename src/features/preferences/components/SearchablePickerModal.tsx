@@ -1,5 +1,7 @@
-import { memo, useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { Modal, Pressable, View } from 'react-native';
+// import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -49,6 +51,61 @@ export const SearchablePickerModal = memo(function SearchablePickerModal({
     );
   }, [items, query]);
 
+  const renderItem = useCallback(
+    ({ item }: { item: SearchablePickerItem }) => {
+      const selected = item.id === selectedId;
+      return (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected }}
+          accessibilityLabel={item.title}
+          onPress={() => {
+            onSelect(item.id);
+            setQuery('');
+            onClose();
+          }}
+          style={[
+            cStyle.flexRow,
+            cStyle.itemCenter,
+            cStyle.justifyBetween,
+            cStyle.ph16,
+            cStyle.pv12,
+            cStyle.r12,
+            cStyle.mt8,
+            {
+              minHeight: theme.buttons.sizes.md.minHeight,
+              backgroundColor: selected ? theme.colors.primarySubtle : theme.colors.surface,
+              borderWidth: 1,
+              borderColor: selected ? theme.colors.primary : theme.colors.border,
+            },
+          ]}
+        >
+          <View style={[cStyle.flex1, cStyle.pr12]}>
+            <ThemedText
+              style={[
+                theme.typography.bodyMedium,
+                { color: selected ? theme.colors.primary : theme.colors.textPrimary },
+              ]}
+            >
+              {item.title}
+            </ThemedText>
+            {item.subtitle != null && (
+              <ThemedText style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+                {item.subtitle}
+              </ThemedText>
+            )}
+          </View>
+          {selected ? (
+            <ThemedText style={[theme.typography.label, { color: theme.colors.primary }]}>
+              Selected
+            </ThemedText>
+          ) : null}
+        </Pressable>
+      );
+    },
+    [onClose, onSelect, selectedId, theme],
+  );
+
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View
@@ -73,12 +130,14 @@ export const SearchablePickerModal = memo(function SearchablePickerModal({
           />
         </View>
 
-        <FlatList
+        <FlashList
           data={filtered}
+          renderItem={renderItem}
+          extraData={selectedId}
           keyExtractor={(item) => item.id}
+          drawDistance={250}
           keyboardShouldPersistTaps="handled"
-          initialNumToRender={20}
-          windowSize={10}
+          style={cStyle.flex1}
           contentContainerStyle={{
             paddingHorizontal: cStyleValues.spacing.lg,
             paddingBottom: cStyleValues.spacing['3xl'],
@@ -95,59 +154,6 @@ export const SearchablePickerModal = memo(function SearchablePickerModal({
               {emptyLabel}
             </ThemedText>
           }
-          renderItem={({ item }) => {
-            const selected = item.id === selectedId;
-            return (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                accessibilityLabel={item.title}
-                onPress={() => {
-                  onSelect(item.id);
-                  setQuery('');
-                  onClose();
-                }}
-                style={[
-                  cStyle.flexRow,
-                  cStyle.itemCenter,
-                  cStyle.justifyBetween,
-                  cStyle.ph16,
-                  cStyle.pv12,
-                  cStyle.r12,
-                  cStyle.mt8,
-                  {
-                    minHeight: theme.buttons.sizes.md.minHeight,
-                    backgroundColor: selected ? theme.colors.primarySubtle : theme.colors.surface,
-                    borderWidth: 1,
-                    borderColor: selected ? theme.colors.primary : theme.colors.border,
-                  },
-                ]}
-              >
-                <View style={[cStyle.flex1, cStyle.pr12]}>
-                  <ThemedText
-                    style={[
-                      theme.typography.bodyMedium,
-                      { color: selected ? theme.colors.primary : theme.colors.textPrimary },
-                    ]}
-                  >
-                    {item.title}
-                  </ThemedText>
-                  {item.subtitle != null && (
-                    <ThemedText
-                      style={[theme.typography.caption, { color: theme.colors.textSecondary }]}
-                    >
-                      {item.subtitle}
-                    </ThemedText>
-                  )}
-                </View>
-                {selected ? (
-                  <ThemedText style={[theme.typography.label, { color: theme.colors.primary }]}>
-                    Selected
-                  </ThemedText>
-                ) : null}
-              </Pressable>
-            );
-          }}
         />
 
         <View style={[cStyle.ph16, cStyle.pb12]}>
