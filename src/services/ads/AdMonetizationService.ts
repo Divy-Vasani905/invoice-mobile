@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { admobConfig } from '@/constants/ads';
-import { invoiceCreditFeatureRepository } from '@/features/credits';
+import { DEV_REWARDED_INVOICE_CREDIT, invoiceCreditFeatureRepository } from '@/features/credits';
 import { INTERSTITIAL_SHOW_WAIT_MS, REWARDED_SHOW_WAIT_MS } from '@/services/ads/adLoadUtils';
 import { initializeAds, isAdsInitialized } from '@/services/ads/initializeAds';
 import { InterstitialAdService } from '@/services/ads/InterstitialAdService';
@@ -187,7 +187,10 @@ class AdMonetizationServiceImpl {
 
     // Idempotent for this display: grant + count exactly once after earned callback.
     this.recordSuccessfulRewardedGrant();
-    invoiceCreditFeatureRepository.grantRewardedInvoiceCredit(monetization.rewardedInvoiceCredit);
+    const creditAmount = __DEV__
+      ? DEV_REWARDED_INVOICE_CREDIT
+      : monetization.rewardedInvoiceCredit;
+    invoiceCreditFeatureRepository.grantRewardedInvoiceCredit(creditAmount);
     return 'granted';
   }
 

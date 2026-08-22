@@ -10,6 +10,11 @@ import { Switch } from '@/components/form/Switch';
 import { IconButton } from '@/components/IconButton';
 import { Header } from '@/components/layout/Header';
 import { ThemedText } from '@/components/themed-text';
+import {
+  DEV_REWARDED_INVOICE_CREDIT,
+  INVOICE_CREDITS_QUERY_KEY,
+  invoiceCreditFeatureRepository,
+} from '@/features/credits';
 import { invoiceFeatureRepository } from '@/features/invoice/repositories/InvoiceRepository';
 import { getCurrencyOptions } from '@/features/preferences/catalog';
 import { SearchablePickerModal } from '@/features/preferences/components/SearchablePickerModal';
@@ -374,6 +379,18 @@ export function SettingsScreen() {
 
         {__DEV__ && (
           <SettingsSection title="Developer">
+            <SettingsRow
+              label={`Add ${DEV_REWARDED_INVOICE_CREDIT} invoice credits`}
+              leading={leadingIcon('add-circle-outline')}
+              onPress={() => {
+                invoiceCreditFeatureRepository.addPurchasedCredits(DEV_REWARDED_INVOICE_CREDIT);
+                void queryClient.invalidateQueries({ queryKey: INVOICE_CREDITS_QUERY_KEY });
+                showToast('success', {
+                  title: `Added ${DEV_REWARDED_INVOICE_CREDIT} invoice credits`,
+                });
+              }}
+              accessibilityHint="Adds purchased invoice credits for local testing"
+            />
             <SettingsRow
               label="Send test backup reminder"
               leading={leadingIcon('notifications-outline')}

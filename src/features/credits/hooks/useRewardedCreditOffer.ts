@@ -35,7 +35,9 @@ export function useRewardedCreditOffer() {
         case 'granted':
           showToast('success', {
             title: 'Invoice credit earned',
-            message: 'You can create 1 invoice now.',
+            message: __DEV__
+              ? 'Development: 10 invoice credits added.'
+              : 'You can create 1 invoice now.',
           });
           break;
         case 'daily_limit':

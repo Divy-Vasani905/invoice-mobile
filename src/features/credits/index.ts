@@ -1,4 +1,8 @@
-export { MONTHLY_FREE_INVOICE_LIMIT, CREDIT_LOW_THRESHOLD } from './constants';
+export {
+  MONTHLY_FREE_INVOICE_LIMIT,
+  CREDIT_LOW_THRESHOLD,
+  DEV_REWARDED_INVOICE_CREDIT,
+} from './constants';
 export { useCreateInvoiceNavigation } from './hooks/useCreateInvoiceNavigation';
 export { useInvoiceCredits, INVOICE_CREDITS_QUERY_KEY } from './hooks/useInvoiceCredits';
 export { useRewardedCreditOffer } from './hooks/useRewardedCreditOffer';
