@@ -87,7 +87,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         backgroundColor: '#F0FFFB',
         image: './assets/images/splash-logo.png',
-        imageWidth: 230,
+        imageWidth: 210,
       },
     ],
     [
@@ -97,7 +97,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sharing',
-    'expo-notifications',
+    [
+      'expo-notifications',
+      {
+        icon: './assets/images/notification-icon-small.png',
+        color: '#FFFFFF',
+      },
+    ],
     './plugins/with-notification-large-icon',
     '@react-native-firebase/app',
     [

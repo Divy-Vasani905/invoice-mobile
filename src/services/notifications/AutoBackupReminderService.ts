@@ -163,7 +163,7 @@ async function buildAutoBackupReminderContent(): Promise<Notifications.Notificat
 
   if (Platform.OS === 'ios') {
     try {
-      const asset = Asset.fromModule(require('../../../../assets/images/icon-with-bg.png'));
+      const asset = Asset.fromModule(require('../../../../assets/images/invoice-base-icon.png'));
       await asset.downloadAsync();
       if (asset.localUri != null) {
         content.attachments = [
