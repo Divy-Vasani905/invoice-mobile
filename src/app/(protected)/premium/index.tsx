@@ -1,5 +1,5 @@
-import { ScreenPlaceholder } from '@/navigation/components/screen-placeholder';
+import { PremiumScreen } from '@/features/premium';
 
 export default function PremiumRoute() {
-  return <ScreenPlaceholder name="Premium" />;
+  return <PremiumScreen />;
 }
