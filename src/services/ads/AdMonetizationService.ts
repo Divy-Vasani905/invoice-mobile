@@ -187,9 +187,7 @@ class AdMonetizationServiceImpl {
 
     // Idempotent for this display: grant + count exactly once after earned callback.
     this.recordSuccessfulRewardedGrant();
-    const creditAmount = __DEV__
-      ? DEV_REWARDED_INVOICE_CREDIT
-      : monetization.rewardedInvoiceCredit;
+    const creditAmount = __DEV__ ? DEV_REWARDED_INVOICE_CREDIT : monetization.rewardedInvoiceCredit;
     invoiceCreditFeatureRepository.grantRewardedInvoiceCredit(creditAmount);
     return 'granted';
   }
