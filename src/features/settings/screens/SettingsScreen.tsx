@@ -14,6 +14,7 @@ import {
   DEV_REWARDED_INVOICE_CREDIT,
   INVOICE_CREDITS_QUERY_KEY,
   invoiceCreditFeatureRepository,
+  useInvoiceCredits,
 } from '@/features/credits';
 import { invoiceFeatureRepository } from '@/features/invoice/repositories/InvoiceRepository';
 import { getCurrencyOptions } from '@/features/preferences/catalog';
@@ -81,6 +82,7 @@ function currencyDisplayLabel(currencyCode: string): string {
 export function SettingsScreen() {
   const router = useRouter();
   const { theme, preference, setThemePreference } = useTheme();
+  const { isPremium } = useInvoiceCredits();
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showNotificationSettingsHelp, setShowNotificationSettingsHelp] = useState(false);
@@ -315,17 +317,19 @@ export function SettingsScreen() {
           />
         </SettingsSection>
 
-        {__DEV__ && (
-          <SettingsSection title="Premium">
-            <SettingsRow
-              label="Go Premium ⭐"
-              tone="premium"
-              leading={premiumIcon}
-              onPress={() => router.push(ROUTES.premium)}
-              accessibilityHint="Opens the premium screen"
-            />
-          </SettingsSection>
-        )}
+        <SettingsSection title="Premium">
+          <SettingsRow
+            label={isPremium ? 'Premium' : 'Go Premium ⭐'}
+            value={isPremium ? 'Active' : undefined}
+            tone="premium"
+            leading={premiumIcon}
+            onPress={() => router.push(ROUTES.premium)}
+            accessibilityHint={
+              isPremium ? 'Opens your Premium status' : 'Opens the premium upgrade screen'
+            }
+            divider={false}
+          />
+        </SettingsSection>
 
         <SettingsSection title="Data & Backup">
           <SettingsRow

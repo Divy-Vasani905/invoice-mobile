@@ -21,7 +21,7 @@ export const DEFAULT_MONETIZATION_CONFIG = {
   rewardedEnabled: true,
   interstitialFrequency: 6,
   rewardedDailyLimit: 10,
-  freeInvoicesPerMonth: 20,
+  freeInvoicesPerMonth: 10,
   rewardedInvoiceCredit: 1,
   premiumRemovesAds: true,
   allowRewardedOffline: false,
