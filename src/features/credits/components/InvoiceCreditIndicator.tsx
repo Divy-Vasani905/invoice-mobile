@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useMemo } from 'react';
 import { Pressable } from 'react-native';
 
@@ -92,11 +92,7 @@ export const InvoiceCreditIndicator = memo(function InvoiceCreditIndicator({
         </ThemedText>
       ) : (
         <>
-          <MaterialCommunityIcons
-            name="crown-circle-outline"
-            size={theme.iconSizes.lg}
-            color={theme.colors.chartExpense}
-          />
+          <Ionicons name="diamond" size={theme.iconSizes.md} color={theme.colors.chartExpense} />
           <ThemedText
             style={[
               theme.typography.label,

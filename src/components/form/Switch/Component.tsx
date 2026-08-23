@@ -1,14 +1,11 @@
-import { memo } from 'react';
-import { Switch as NativeSwitch, Text, View } from 'react-native';
+import { memo, useEffect, useRef } from 'react';
+import { Animated, Pressable, Text, View } from 'react-native';
 
 import { useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
 import type { SwitchProps } from './types';
 
-/**
- * Controlled native switch with optional semantic label and description.
- */
 export const Switch = memo(function Switch({
   value,
   onValueChange,
@@ -20,6 +17,21 @@ export const Switch = memo(function Switch({
   style,
 }: SwitchProps) {
   const { theme } = useTheme();
+
+  const TRACK_WIDTH = 52;
+  const TRACK_HEIGHT = 30;
+  const THUMB_SIZE = 22;
+
+  const translateX = useRef(new Animated.Value(value ? TRACK_WIDTH - TRACK_HEIGHT : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(translateX, {
+      toValue: value ? TRACK_WIDTH - TRACK_HEIGHT : 0,
+      useNativeDriver: true,
+      tension: 120,
+      friction: 10,
+    }).start();
+  }, [value, translateX]);
 
   return (
     <View
@@ -41,6 +53,7 @@ export const Switch = memo(function Switch({
               {label}
             </Text>
           )}
+
           {description != null && (
             <Text style={[theme.typography.helper, { color: theme.colors.textSecondary }]}>
               {description}
@@ -48,17 +61,36 @@ export const Switch = memo(function Switch({
           )}
         </View>
       )}
-      <NativeSwitch
+
+      <Pressable
         accessibilityRole="switch"
         accessibilityLabel={accessibilityLabel ?? label}
         accessibilityHint={accessibilityHint}
-        accessibilityState={{ checked: value, disabled }}
+        accessibilityState={{
+          checked: value,
+          disabled,
+        }}
         disabled={disabled}
-        onValueChange={onValueChange}
-        trackColor={{ false: theme.colors.backgroundSubtle, true: theme.colors.primary }}
-        thumbColor={value ? theme.colors.onPrimary : theme.colors.surfaceRaised}
-        value={value}
-      />
+        onPress={() => onValueChange?.(!value)}
+        style={{
+          width: TRACK_WIDTH,
+          height: TRACK_HEIGHT,
+          borderRadius: TRACK_HEIGHT / 2,
+          backgroundColor: value ? theme.colors.primary : '#9CA3AF',
+          justifyContent: 'center',
+          paddingHorizontal: (TRACK_HEIGHT - THUMB_SIZE) / 2,
+        }}
+      >
+        <Animated.View
+          style={{
+            width: THUMB_SIZE,
+            height: THUMB_SIZE,
+            borderRadius: THUMB_SIZE / 2,
+            backgroundColor: value ? theme.colors.onPrimary : '#F3F4F6',
+            transform: [{ translateX }],
+          }}
+        />
+      </Pressable>
     </View>
   );
 });

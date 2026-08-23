@@ -1,13 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AppState, Linking, Pressable, ScrollView, Share, View } from 'react-native';
+import { AppState, Linking, Pressable, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/feedback/Modal';
 import { showToast } from '@/components/feedback/Toast';
 import { Switch } from '@/components/form/Switch';
-import { IconButton } from '@/components/IconButton';
 import { Header } from '@/components/layout/Header';
 import { ThemedText } from '@/components/themed-text';
 import {
@@ -52,8 +51,6 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 ];
 
 const BACKUP_REMINDER_DESCRIPTION = 'Get reminded to create a backup of your data.';
-const NOTIFICATIONS_DISABLED_DESCRIPTION =
-  'Notifications are disabled. Enable them in device settings to receive backup reminders.';
 const NOTIFICATIONS_DISABLED_TITLE = 'Notifications are disabled';
 const NOTIFICATIONS_DISABLED_MESSAGE =
   'Easy Invoice Maker needs notification permission to remind you about backups. You can enable notifications from your device settings.';
@@ -248,18 +245,7 @@ export function SettingsScreen() {
 
   return (
     <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
-      <Header
-        title="Settings"
-        rightActions={
-          <IconButton
-            icon={({ color, size }) => (
-              <Ionicons name="notifications-outline" color={color} size={size} />
-            )}
-            accessibilityLabel="View notifications"
-            onPress={() => undefined}
-          />
-        }
-      />
+      <Header title="Settings" />
 
       <ScrollView
         contentContainerStyle={{
@@ -343,11 +329,7 @@ export function SettingsScreen() {
           />
           <SettingsRow
             label="Auto Backup Reminder"
-            description={
-              autoBackupReminderEnabled && !notificationPermissionGranted
-                ? NOTIFICATIONS_DISABLED_DESCRIPTION
-                : BACKUP_REMINDER_DESCRIPTION
-            }
+            description={BACKUP_REMINDER_DESCRIPTION}
             leading={leadingIcon('alarm-outline')}
             trailing={
               <Switch
@@ -445,14 +427,18 @@ export function SettingsScreen() {
             leading={leadingIcon('share-social-outline')}
             divider={false}
             onPress={() => {
-              void Share.share({
-                message: 'Check out Invoicely — create professional invoices offline.',
-              }).catch(() => {
-                showToast('info', {
-                  title: 'Share unavailable',
-                  message: 'Sharing is not available on this device.',
-                });
+              showToast('info', {
+                title: 'Share App',
+                message: 'Sharing will be available in a future update.',
               });
+              // void Share.share({
+              //   message: 'Check out Invoicely — create professional invoices offline.',
+              // }).catch(() => {
+              //   showToast('info', {
+              //     title: 'Share unavailable',
+              //     message: 'Sharing is not available on this device.',
+              //   });
+              // });
             }}
             accessibilityHint="Opens the system share sheet"
           />
