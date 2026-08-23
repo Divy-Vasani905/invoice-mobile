@@ -16,7 +16,7 @@ export default function PremiumLayout() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="index" options={createHeaderOptions({ title: 'Go Premium' })} />
+      <Stack.Screen name="index" options={createHeaderOptions({ title: 'Premium' })} />
       <Stack.Screen name="subscription" options={createHeaderOptions({ title: 'Subscription' })} />
       <Stack.Screen
         name="restore-purchases"
