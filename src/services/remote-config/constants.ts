@@ -4,8 +4,11 @@ export const REMOTE_CONFIG_KEYS = {
   monetizationConfig: 'monetization_config',
 } as const;
 
-/** Development: short interval for testing. Production: 12 hours. */
-export const REMOTE_CONFIG_MINIMUM_FETCH_INTERVAL_MS = __DEV__ ? 30_000 : 12 * 60 * 60 * 1000;
+/**
+ * 60 seconds = fetch from Firebase on every initialize (app cold start).
+ * Firebase may still rate-limit extremely frequent clients.
+ */
+export const REMOTE_CONFIG_MINIMUM_FETCH_INTERVAL_MS = 60000;
 
 /** Optional update prompt dismissed for this duration when forceUpdate is false. */
 export const APP_UPDATE_DISMISS_TTL_MS = 24 * 60 * 60 * 1000;

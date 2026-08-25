@@ -122,7 +122,7 @@ export const InvoiceUsageModal = memo(function InvoiceUsageModal({
                   style={[cStyle.flex1, { minWidth: 120 }]}
                 />
               )}
-              {showPremium && !__DEV__ && (
+              {showPremium && __DEV__ && (
                 <Button
                   label="Go Premium"
                   variant="outline"
