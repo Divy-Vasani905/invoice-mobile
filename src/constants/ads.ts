@@ -13,7 +13,8 @@ export const GOOGLE_TEST_ANDROID_APP_ID = 'ca-app-pub-3940256099942544~334751171
  * Force Google sample unit IDs whenever Metro is in development mode.
  * Production release builds (`__DEV__ === false`) use EXPO_PUBLIC_* unit IDs only.
  */
-export const USE_ADMOB_TEST_UNITS = __DEV__;
+// export const USE_ADMOB_TEST_UNITS = __DEV__;
+export const USE_ADMOB_TEST_UNITS = true;
 
 const interstitialUnitId = USE_ADMOB_TEST_UNITS
   ? TestIds.INTERSTITIAL

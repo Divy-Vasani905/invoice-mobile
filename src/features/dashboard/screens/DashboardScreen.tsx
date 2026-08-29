@@ -26,6 +26,7 @@ import logoWithoutBg from '../../../../assets/images/invoice-base-icon.png';
 import { AnalyticsCard } from '../components/AnalyticsCard';
 import { InvoiceCard } from '../components/InvoiceCard';
 import { useDashboard } from '../hooks/useDashboard';
+import { useTimeOfDayGreeting } from '../hooks/useTimeOfDayGreeting';
 
 import type { DashboardRecentMode, Invoice } from '../types/dashboard.types';
 
@@ -39,6 +40,7 @@ const DASHBOARD_INVOICE_CARD_LIMIT = 3;
 export const DashboardScreen = memo(function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const greeting = useTimeOfDayGreeting();
   const [showRecentModePicker, setShowRecentModePicker] = useState(false);
   const { totalAvailable, isPremium } = useInvoiceCredits();
   const {
@@ -162,7 +164,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
 
         <View>
           <ThemedText style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            Good Morning,
+            {greeting}
           </ThemedText>
           {data.business.name.length > 0 && (
             <ThemedText
@@ -262,6 +264,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
     data.business.name,
     data.business.weeklyRevenue,
     formatCurrency,
+    greeting,
     growthBadge,
     isPremium,
     openBusinessProfile,
