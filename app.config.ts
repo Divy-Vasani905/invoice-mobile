@@ -24,16 +24,24 @@ const admobAndroidAppId =
   process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID?.trim() || ADMOB_TEST_ANDROID_APP_ID;
 // const admobIosAppId = process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID?.trim() || ADMOB_TEST_IOS_APP_ID;
 
+/** Local debug installs use `.dev` so they sit next to the Play Store app. Set APP_VARIANT=production for store builds. */
+const isDevelopment = process.env.APP_VARIANT !== 'production';
+
+const androidPackage = isDevelopment
+  ? 'com.divyvasani.easyinvoicemaker.dev'
+  : 'com.divyvasani.easyinvoicemaker';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Easy Invoice Maker',
+  name: isDevelopment ? 'Easy Invoice Maker (Dev)' : 'Easy Invoice Maker',
   slug: 'easy-invoice-maker',
-  version: '0.0.1',
+  version: '0.1.6',
   orientation: 'portrait',
   icon: './assets/images/invoice-base-icon.png',
   scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
+    buildNumber: '6',
     icon: './assets/expo.icon',
     bundleIdentifier: 'com.divyvasani.easyinvoicemaker',
     supportsTablet: true,
@@ -45,7 +53,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: 'com.divyvasani.easyinvoicemaker',
+    versionCode: 6,
+    package: androidPackage,
     adaptiveIcon: {
       backgroundColor: '#F0FFFB',
       foregroundImage: './assets/images/invoice-base-icon.png',

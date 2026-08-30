@@ -14,8 +14,10 @@ export type AppUpdateCheckResult = {
   storeUrl: string | null;
 };
 
+const PRODUCTION_ANDROID_PACKAGE = 'com.divyvasani.easyinvoicemaker';
+
 function getAndroidPackageName(): string {
-  return Constants.expoConfig?.android?.package ?? 'com.divyvasani.easyinvoicemaker';
+  return PRODUCTION_ANDROID_PACKAGE;
 }
 
 function getIosBundleId(): string {
