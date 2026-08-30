@@ -230,6 +230,11 @@ export function SettingsScreen() {
       'https://rachivinfotech.pages.dev/apps/easy-invoice-maker/privacy-policy',
     );
   };
+  const handleRateAppPress = async () => {
+    await Linking.openURL(
+      'https://play.google.com/store/apps/details?id=com.divyvasani.easyinvoicemaker',
+    );
+  };
 
   const leadingIcon = (name: keyof typeof Ionicons.glyphMap) => (
     <View style={[cStyle.p8, cStyle.r12, { backgroundColor: theme.colors.backgroundSubtle }]}>
@@ -415,10 +420,11 @@ export function SettingsScreen() {
             label="Rate App"
             leading={leadingIcon('star-outline')}
             onPress={() => {
-              showToast('info', {
-                title: 'Rate App',
-                message: 'Store rating will be available in a future update.',
-              });
+              // showToast('info', {
+              //   title: 'Rate App',
+              //   message: 'Store rating will be available in a future update.',
+              // });
+              void handleRateAppPress();
             }}
             accessibilityHint="Store rating is not available yet"
           />
