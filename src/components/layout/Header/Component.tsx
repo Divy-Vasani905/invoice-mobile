@@ -34,7 +34,7 @@ export const Header = memo(function Header({
       {leftAction ??
         (onBack != null && (
           <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={onBack}>
-            <Ionicons name="chevron-back" color={theme.colors.primary} size={theme.iconSizes.lg} />
+            <Ionicons name="arrow-back" color={theme.colors.primary} size={theme.iconSizes.lg} />
           </Pressable>
         ))}
       <View style={{ flex: 1, gap: theme.inputs.layout.gap }}>

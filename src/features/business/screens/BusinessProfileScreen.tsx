@@ -59,13 +59,14 @@ export function BusinessProfileScreen() {
       <View style={[cStyle.flex1, { backgroundColor: theme.colors.background }]}>
         <Header title="Business Profile" onBack={() => router.back()} />
         <EmptyState
-          title="No business profile yet"
+          title="Profile is Not Set"
           description="Add your business details to automatically use them on invoices."
           icon={({ color, size }) => <Ionicons name="business-outline" color={color} size={size} />}
           primaryAction={{
             label: 'Add Business',
             onPress: () => router.push(ROUTES.businessForm),
           }}
+          // style={[cStyle.flex1, cStyle.mh4]}
         />
       </View>
     );
