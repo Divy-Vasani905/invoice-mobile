@@ -21,7 +21,6 @@ import { PostOnboardingNotificationPermission } from '@/features/settings/compon
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
-// import logo from '../../../../assets/images/invoice-base-icon.png';
 import logoWithoutBg from '../../../../assets/images/invoice-base-icon.png';
 import { AnalyticsCard } from '../components/AnalyticsCard';
 import { InvoiceCard } from '../components/InvoiceCard';

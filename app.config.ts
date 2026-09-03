@@ -129,6 +129,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-build-properties',
       {
+        android: {
+          // Avoid AGP IncrementalSplitterRunnable failures on Windows when
+          // packaging uncompressed page-aligned native libraries.
+          useLegacyPackaging: true,
+        },
         ios: {
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBAnalytics', 'RNFBCrashlytics', 'RNFBMessaging'],

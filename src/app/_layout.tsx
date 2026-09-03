@@ -17,6 +17,11 @@ import { useScreenAnalytics } from '@/navigation/hooks/use-screen-analytics';
 import { useStackScreenOptions } from '@/navigation/hooks/use-screen-options';
 import { queryClient } from '@/providers/query-client';
 import { initializeProductionServices } from '@/services/bootstrap';
+import {
+  getFcmToken,
+  subscribeToFcmTokenRefresh,
+  subscribeToForegroundMessages,
+} from '@/services/notifications';
 import { cStyle, ThemeProvider, useTheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +29,43 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   useEffect(() => {
     void initializeProductionServices();
+  }, []);
+
+  useEffect(() => {
+    let unsubscribeTokenRefresh: (() => void) | undefined;
+    let unsubscribeForeground: (() => void) | undefined;
+
+    const setupFirebaseMessaging = async () => {
+      const token = await getFcmToken();
+
+      if (token) {
+        console.log('[FCM] Device token:', token);
+
+        // For now:
+        // just testing.
+        //
+        // Later:
+        // save this token to Firestore/backend.
+      }
+
+      unsubscribeTokenRefresh = subscribeToFcmTokenRefresh((refreshedToken) => {
+        console.log('[FCM] New token:', refreshedToken);
+
+        // Later:
+        // update token in Firestore/backend.
+      });
+
+      unsubscribeForeground = subscribeToForegroundMessages((remoteMessage) => {
+        console.log('[FCM] Foreground message received:', remoteMessage);
+      });
+    };
+
+    void setupFirebaseMessaging();
+
+    return () => {
+      unsubscribeTokenRefresh?.();
+      unsubscribeForeground?.();
+    };
   }, []);
 
   return (

@@ -21,3 +21,9 @@ export type {
   NotificationPermissionSnapshot,
   SyncAutoBackupReminderResult,
 } from './types';
+export {
+  FCM_NOTIFICATION_CHANNEL_ID,
+  getFcmToken,
+  subscribeToFcmTokenRefresh,
+  subscribeToForegroundMessages,
+} from './FirebaseMessagingService';

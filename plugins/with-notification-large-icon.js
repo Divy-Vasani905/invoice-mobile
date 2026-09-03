@@ -10,7 +10,7 @@ const {
 const { generateImageAsync } = require('@expo/image-utils');
 const { PNG } = require('pngjs');
 
-const LARGE_ICON_SRC = './assets/images/invoice-base-icon.png';
+const LARGE_ICON_SRC = './assets/images/notification-icon.jpg';
 /** Alpha-only silhouette. Full-color logos become a solid square on Android. */
 const SMALL_ICON_SRC = './assets/images/notification-icon-small.png';
 const LARGE_RESOURCE_NAME = 'notification_large_icon';
