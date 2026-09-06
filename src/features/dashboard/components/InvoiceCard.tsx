@@ -5,6 +5,7 @@ import { Badge } from '@/components/Badge';
 import { Card } from '@/components/layout/Card';
 import { ListItem } from '@/components/layout/ListItem';
 import { ThemedText } from '@/components/themed-text';
+import { getPreferredCurrencyCode, useUserPreferencesStore } from '@/stores/user-preferences';
 import { useTheme, cStyle, type BadgeVariant } from '@/theme';
 
 export interface InvoiceCardProps {
@@ -14,6 +15,8 @@ export interface InvoiceCardProps {
   customerName: string;
   /** Invoice amount (numeric) */
   amount: number;
+  /** Currency code for formatting (e.g. "INR", "USD") */
+  currencyCode?: string;
   /** Invoice status value */
   status: 'Paid' | 'Pending' | 'Overdue' | 'Draft';
   /** Formatted date of the invoice */
@@ -28,12 +31,15 @@ export const InvoiceCard = memo(function InvoiceCard({
   invoiceNumber,
   customerName,
   amount,
+  currencyCode,
   status,
   date,
   onPress,
   style,
 }: InvoiceCardProps) {
   const { theme } = useTheme();
+  const preferredCurrency = useUserPreferencesStore((state) => state.currencyCode);
+  const activeCurrency = currencyCode || preferredCurrency || getPreferredCurrencyCode();
 
   // Map status to semantic Badge variant
   const badgeVariant = useMemo<BadgeVariant>(() => {
@@ -53,11 +59,11 @@ export const InvoiceCard = memo(function InvoiceCard({
 
   // Format currency value cleanly
   const formattedAmount = useMemo(() => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: 'USD',
+      currency: activeCurrency,
     }).format(amount);
-  }, [amount]);
+  }, [amount, activeCurrency]);
 
   // Trailing stack component displaying Amount and Status Badge
   const trailingContent = useMemo(() => {

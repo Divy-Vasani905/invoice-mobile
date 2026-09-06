@@ -17,6 +17,7 @@ export interface Invoice {
   amount: number;
   status: InvoiceStatus;
   date: string; // e.g. "Aug 06, 2026"
+  currencyCode?: string;
 }
 
 export interface QuickAction {

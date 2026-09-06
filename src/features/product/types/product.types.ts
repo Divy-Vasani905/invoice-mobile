@@ -1,4 +1,4 @@
-import type { Product, ProductType, ProductUnit } from '@/types/models';
+import type { DiscountType, Product, ProductType, ProductUnit } from '@/types/models';
 
 export interface ProductFormValues {
   name: string;
@@ -7,6 +7,8 @@ export interface ProductFormValues {
   sku: string;
   unit: ProductUnit;
   unitPrice: string;
+  discountType: DiscountType;
+  discount: string;
   taxRate: string;
   currencyCode: string;
   isActive: boolean;

@@ -1,5 +1,5 @@
 import type { BadgeVariant } from '@/theme';
-import type { Invoice, InvoiceStatus } from '@/types/models';
+import type { DiscountType, Invoice, InvoiceStatus } from '@/types/models';
 
 export type InvoiceListFilter = 'all' | 'paid' | 'pending' | 'overdue' | 'draft';
 
@@ -23,6 +23,7 @@ export interface InvoiceFormItemValues {
   quantity: string;
   unitPrice: string;
   taxRate: string;
+  discountType?: DiscountType;
   discount: string;
 }
 

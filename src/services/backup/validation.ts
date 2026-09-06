@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { isValidCountryCode, isValidCurrencyCode } from '@/features/preferences/catalog';
 import {
+  DiscountType,
   InvoiceNumberingMode,
   InvoiceStatus,
   MAX_INVOICE_NUMBER_PADDING,
@@ -92,6 +93,8 @@ const productSchema = offlineEntitySchema
     type: z.enum(ProductType),
     unit: z.enum(ProductUnit),
     unitPrice: moneySchema,
+    discountType: z.enum(DiscountType).optional(),
+    discount: z.number().optional(),
     taxRateBasisPoints: z.number().int(),
     isActive: z.boolean(),
     description: z.string().optional(),

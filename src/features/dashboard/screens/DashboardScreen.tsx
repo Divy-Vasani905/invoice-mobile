@@ -18,6 +18,7 @@ import { InvoiceCreditIndicator, InvoiceUsageModal, useInvoiceCredits } from '@/
 import { ProductCard } from '@/features/product/components/ProductCard';
 import type { ProductListItem } from '@/features/product/types/product.types';
 import { PostOnboardingNotificationPermission } from '@/features/settings/components/PostOnboardingNotificationPermission';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
 import { cStyle, useTheme } from '@/theme';
 import { cStyleValues } from '@/theme/cStyle';
 
@@ -66,7 +67,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
       monthlyRevenue: 0,
       weeklyRevenue: 0,
       revenueGrowth: 0,
-      currencyCode: 'USD',
+      currencyCode: getPreferredCurrencyCode(),
     },
     recentInvoices: [],
     recentProducts: [],
@@ -288,6 +289,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
           invoiceNumber={invoice.invoiceNumber}
           customerName={invoice.customerName}
           amount={invoice.amount}
+          currencyCode={invoice.currencyCode}
           status={invoice.status}
           date={invoice.date}
           onPress={() => openInvoice(invoice.id)}

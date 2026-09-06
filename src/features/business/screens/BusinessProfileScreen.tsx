@@ -148,9 +148,7 @@ export function BusinessProfileScreen() {
             onPress={() => setShowCountryPicker(true)}
             accessibilityHint="Opens the country picker"
           />
-          {business.taxId != null && (
-            <ListItem title="GST / Tax ID" subtitle={business.taxId} divider />
-          )}
+          {business.taxId != null && <ListItem title="Tax ID" subtitle={business.taxId} divider />}
           {business.phone != null && <ListItem title="Phone" subtitle={business.phone} divider />}
           {business.email != null && <ListItem title="Email" subtitle={business.email} divider />}
           {business.website != null && (

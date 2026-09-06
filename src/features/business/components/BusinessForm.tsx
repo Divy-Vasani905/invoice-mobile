@@ -82,14 +82,14 @@ export function BusinessForm({
         name="taxId"
         render={({ field }) => (
           <Input
-            label="GST / Tax ID"
+            label="Tax ID"
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             errorMessage={errors.taxId?.message}
             placeholder="Enter tax registration number"
             autoCapitalize="characters"
-            accessibilityLabel="GST or Tax ID"
+            accessibilityLabel="Tax ID"
           />
         )}
       />

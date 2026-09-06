@@ -7,7 +7,7 @@ import {
   type ProductRepository as ProductStorageRepository,
 } from '@/storage';
 import { getPreferredCurrencyCode } from '@/stores/user-preferences';
-import { ProductType, ProductUnit, SyncStatus, type Product } from '@/types/models';
+import { DiscountType, ProductType, ProductUnit, SyncStatus, type Product } from '@/types/models';
 
 import { ProductReferencedError } from '../types/product.types';
 import {
@@ -16,6 +16,7 @@ import {
   formatMoney,
   getProductTypeLabel,
   getProductUnitLabel,
+  parseDiscountInput,
   parsePriceInput,
   parseTaxRateInput,
   toMinorUnits,
@@ -113,6 +114,8 @@ export class ProductRepository {
       sku: '',
       unit: settings?.invoice.defaultProductUnit ?? ProductUnit.Each,
       unitPrice: '',
+      discountType: DiscountType.Percentage,
+      discount: '0',
       taxRate: '',
       currencyCode: getPreferredCurrencyCode(),
       isActive: true,
@@ -138,7 +141,8 @@ export class ProductRepository {
 function toPersistedFields(values: ProductFormValues) {
   const price = parsePriceInput(values.unitPrice);
   const taxRate = parseTaxRateInput(values.taxRate);
-  if (price == null || taxRate == null) {
+  const discount = parseDiscountInput(values.discount);
+  if (price == null || taxRate == null || discount == null) {
     throw new Error('Invalid product pricing values.');
   }
 
@@ -151,6 +155,8 @@ function toPersistedFields(values: ProductFormValues) {
       amountMinor: toMinorUnits(price, values.currencyCode),
       currencyCode: values.currencyCode,
     },
+    discountType: values.discountType ?? DiscountType.Percentage,
+    discount,
     taxRateBasisPoints: Math.round(taxRate * 100),
     sku: compactOptional(values.sku),
     isActive: values.isActive,
@@ -158,9 +164,10 @@ function toPersistedFields(values: ProductFormValues) {
 }
 
 function toListItem(product: Product): ProductListItem {
+  const currencyCode = getPreferredCurrencyCode();
   return {
     product,
-    formattedPrice: formatMoney(product.unitPrice.amountMinor, product.unitPrice.currencyCode),
+    formattedPrice: formatMoney(product.unitPrice.amountMinor, currencyCode),
     typeLabel: getProductTypeLabel(product.type),
     unitLabel: getProductUnitLabel(product.unit),
   };

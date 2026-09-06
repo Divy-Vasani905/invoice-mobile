@@ -306,7 +306,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
   );
 
   const handleAddManual = useCallback(() => {
-    const currencyCode = getValues('currencyCode') || 'USD';
+    const currencyCode = getValues('currencyCode') || getPreferredCurrencyCode();
     const item = createEmptyFormItem(currencyCode);
     append(item);
     setEditingItemId(item.id);
@@ -519,7 +519,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
                 <InvoiceItemRow
                   key={field.fieldKey}
                   item={item}
-                  currencyCode={watchedCurrency || 'USD'}
+                  currencyCode={watchedCurrency || getPreferredCurrencyCode()}
                   lineTotalMinor={lineTotal}
                   onEdit={setEditingItemId}
                   onRemove={handleRemoveItem}
@@ -587,7 +587,7 @@ export const InvoiceFormScreen = memo(function InvoiceFormScreen({
         ) : null}
 
         <InvoiceSummary
-          currencyCode={watchedCurrency || 'USD'}
+          currencyCode={watchedCurrency || getPreferredCurrencyCode()}
           subtotalMinor={calculation?.subtotalMinor ?? 0}
           discountMinor={calculation?.discountTotalMinor ?? 0}
           taxMinor={calculation?.taxTotalMinor ?? 0}

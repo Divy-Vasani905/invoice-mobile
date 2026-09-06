@@ -18,3 +18,6 @@ export type { SwitchProps } from '@/components/form/Switch';
 
 export { TextArea } from '@/components/form/TextArea';
 export type { TextAreaProps } from '@/components/form/TextArea';
+
+export { NumberStepperInput } from '@/components/form/NumberStepperInput';
+export type { NumberStepperInputProps } from '@/components/form/NumberStepperInput';

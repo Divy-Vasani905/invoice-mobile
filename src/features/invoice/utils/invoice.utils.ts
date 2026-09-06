@@ -4,6 +4,7 @@ import {
   InvoiceCalculationEngine,
   type InvoiceCalculationResult,
   type InvoiceLineItemInput,
+  type LineItemDiscount,
   type TaxDefinition,
 } from '@/services/invoice/calculation';
 import { InvoiceNumberGenerator } from '@/services/invoice/InvoiceNumberGenerator';
@@ -260,6 +261,8 @@ export function createEmptyFormItem(_currencyCode?: string): InvoiceFormItemValu
 }
 
 export function productToFormItem(product: Product): InvoiceFormItemValues {
+  const discountType = product.discountType ?? DiscountType.Percentage;
+  const discountVal = product.discount ?? 0;
   return {
     id: createLocalId('item'),
     productId: product.id,
@@ -269,7 +272,8 @@ export function productToFormItem(product: Product): InvoiceFormItemValues {
     quantity: '1',
     unitPrice: String(toMajorUnits(product.unitPrice.amountMinor, product.unitPrice.currencyCode)),
     taxRate: basisPointsToPercentString(product.taxRateBasisPoints),
-    discount: '',
+    discountType,
+    discount: discountVal > 0 ? String(discountVal) : '',
   };
 }
 
@@ -500,13 +504,21 @@ export function formItemsToCalculationInput(
       return null;
     }
 
-    const discount =
-      discountMajor === 0
-        ? { type: DiscountType.None as const }
-        : {
-            type: DiscountType.FixedAmount as const,
-            amountMinor: toMinorUnits(discountMajor, currencyCode),
-          };
+    const itemDiscountType = item.discountType ?? DiscountType.FixedAmount;
+    let discount: LineItemDiscount;
+    if (discountMajor === 0) {
+      discount = { type: DiscountType.None };
+    } else if (itemDiscountType === DiscountType.Percentage) {
+      discount = {
+        type: DiscountType.Percentage,
+        rateBasisPoints: Math.round(discountMajor * 100),
+      };
+    } else {
+      discount = {
+        type: DiscountType.FixedAmount,
+        amountMinor: toMinorUnits(discountMajor, currencyCode),
+      };
+    }
 
     inputs.push({
       id: item.id,

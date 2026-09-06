@@ -12,7 +12,7 @@ export type { Business } from '@/types/models/business';
 export type { Customer } from '@/types/models/customer';
 
 export type { Product } from '@/types/models/product';
-export { ProductType, ProductUnit } from '@/types/models/product';
+export { DiscountType, ProductType, ProductUnit } from '@/types/models/product';
 
 export type { InvoiceItem, ProductSnapshot } from '@/types/models/invoice-item';
 

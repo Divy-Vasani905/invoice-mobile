@@ -1,4 +1,5 @@
-import { ProductType, ProductUnit, type Product } from '@/types/models';
+import { getPreferredCurrencyCode } from '@/stores/user-preferences';
+import { DiscountType, ProductType, ProductUnit, type Product } from '@/types/models';
 
 import type { ProductFormValues } from '../types/product.types';
 
@@ -9,6 +10,8 @@ export const EMPTY_PRODUCT_FORM: ProductFormValues = {
   sku: '',
   unit: ProductUnit.Each,
   unitPrice: '',
+  discountType: DiscountType.Percentage,
+  discount: '0',
   taxRate: '',
   currencyCode: 'USD',
   isActive: true,
@@ -17,6 +20,11 @@ export const EMPTY_PRODUCT_FORM: ProductFormValues = {
 export const PRODUCT_TYPE_OPTIONS = [
   { value: ProductType.Good, label: 'Product' },
   { value: ProductType.Service, label: 'Service' },
+] as const;
+
+export const DISCOUNT_TYPE_OPTIONS = [
+  { value: DiscountType.Percentage, label: 'Percentage' },
+  { value: DiscountType.FixedAmount, label: 'Flat Amount' },
 ] as const;
 
 export const PRODUCT_UNIT_OPTIONS = [
@@ -84,15 +92,18 @@ export function getProductUnitLabel(unit: ProductUnit): string {
 }
 
 export function toProductFormValues(product: Product): ProductFormValues {
+  const currencyCode = getPreferredCurrencyCode();
   return {
     name: product.name,
     description: product.description ?? '',
     type: product.type,
     sku: product.sku ?? '',
     unit: product.unit,
-    unitPrice: String(toMajorUnits(product.unitPrice.amountMinor, product.unitPrice.currencyCode)),
+    unitPrice: String(toMajorUnits(product.unitPrice.amountMinor, currencyCode)),
+    discountType: product.discountType ?? DiscountType.Percentage,
+    discount: String(product.discount ?? 0),
     taxRate: product.taxRateBasisPoints === 0 ? '' : String(product.taxRateBasisPoints / 100),
-    currencyCode: product.unitPrice.currencyCode,
+    currencyCode,
     isActive: product.isActive,
   };
 }
@@ -100,6 +111,13 @@ export function toProductFormValues(product: Product): ProductFormValues {
 export function parsePriceInput(value: string): number | null {
   const normalized = value.trim().replace(/,/g, '');
   if (normalized.length === 0) return null;
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+export function parseDiscountInput(value: string): number | null {
+  const normalized = value.trim().replace(/,/g, '');
+  if (normalized.length === 0) return 0;
   const amount = Number(normalized);
   return Number.isFinite(amount) ? amount : null;
 }

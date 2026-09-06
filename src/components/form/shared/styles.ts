@@ -79,7 +79,7 @@ export function getFieldStyles(
       ...theme.typography[layout.errorTypography],
       color: theme.colors.danger,
     },
-    iconColor: theme.colors[colors.icon],
+    iconColor: theme.colors.textSecondary,
     iconSize: theme.iconSizes.md,
   };
 }

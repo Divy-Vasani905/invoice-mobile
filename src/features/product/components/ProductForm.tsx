@@ -1,19 +1,23 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Controller, type Control, type FieldErrors } from 'react-hook-form';
+import { Controller, useWatch, type Control, type FieldErrors } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { BottomSheet } from '@/components/feedback/BottomSheet';
 import { Input } from '@/components/form/Input';
+import { NumberStepperInput } from '@/components/form/NumberStepperInput';
 import { Select } from '@/components/form/Select';
 import { Switch } from '@/components/form/Switch';
 import { TextArea } from '@/components/form/TextArea';
 import { SegmentControl } from '@/components/layout/SegmentControl';
+import { getCurrencySymbol } from '@/features/preferences/catalog';
+import { getPreferredCurrencyCode, useUserPreferencesStore } from '@/stores/user-preferences';
 import { cStyle, useTheme } from '@/theme';
-import { ProductType, type ProductUnit } from '@/types/models';
+import { DiscountType, ProductType, type ProductUnit } from '@/types/models';
 
+import { DiscountTypeSelect } from './DiscountTypeSelect';
 import {
-  CURRENCY_OPTIONS,
+  DISCOUNT_TYPE_OPTIONS,
   PRODUCT_TYPE_OPTIONS,
   PRODUCT_UNIT_OPTIONS,
 } from '../utils/product.utils';
@@ -31,7 +35,7 @@ export interface ProductFormProps {
   onDelete?: () => void;
 }
 
-type PickerTarget = 'unit' | 'currency' | null;
+type PickerTarget = 'unit' | null;
 
 export const ProductForm = memo(function ProductForm({
   control,
@@ -44,8 +48,17 @@ export const ProductForm = memo(function ProductForm({
 }: ProductFormProps) {
   const { theme } = useTheme();
   const sheetRef = useRef<BottomSheetNative>(null);
-  const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
+  const [_pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
   const [pendingChange, setPendingChange] = useState<((value: string) => void) | null>(null);
+
+  const discountType = useWatch({ control, name: 'discountType' });
+  const watchedCurrencyCode = useWatch({ control, name: 'currencyCode' });
+  const preferredCurrencyCode = useUserPreferencesStore((state) => state.currencyCode);
+
+  const activeCurrency = watchedCurrencyCode || preferredCurrencyCode || getPreferredCurrencyCode();
+
+  const discountSuffix =
+    discountType === DiscountType.FixedAmount ? getCurrencySymbol(activeCurrency) : '%';
 
   const openPicker = useCallback(
     (target: Exclude<PickerTarget, null>, onChange: (value: string) => void) => {
@@ -62,7 +75,8 @@ export const ProductForm = memo(function ProductForm({
     setPendingChange(null);
   }, []);
 
-  const pickerOptions = pickerTarget === 'currency' ? CURRENCY_OPTIONS : PRODUCT_UNIT_OPTIONS;
+  const pickerOptions = PRODUCT_UNIT_OPTIONS;
+  const pickerTitle = 'Select unit';
 
   return (
     <View style={[cStyle.g16]}>
@@ -157,16 +171,51 @@ export const ProductForm = memo(function ProductForm({
         control={control}
         name="unitPrice"
         render={({ field }) => (
-          <Input
+          <NumberStepperInput
             label="Price"
             required
             value={field.value}
-            onChangeText={field.onChange}
+            onChangeValue={field.onChange}
             onBlur={field.onBlur}
             errorMessage={errors.unitPrice?.message}
             placeholder="0.00"
-            keyboardType="decimal-pad"
             accessibilityLabel="Price"
+            step={1}
+            min={0}
+            decimalPlaces={2}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="discountType"
+        render={({ field }) => (
+          <DiscountTypeSelect
+            label="Discount Type"
+            options={DISCOUNT_TYPE_OPTIONS}
+            value={field.value}
+            onChange={(val) => field.onChange(val as DiscountType)}
+            errorMessage={errors.discountType?.message}
+            accessibilityLabel="Discount Type"
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="discount"
+        render={({ field }) => (
+          <Input
+            label="Discount"
+            value={field.value}
+            onChangeText={field.onChange}
+            onBlur={field.onBlur}
+            errorMessage={errors.discount?.message}
+            placeholder={discountType === DiscountType.FixedAmount ? '0.00' : '0'}
+            suffix={discountSuffix}
+            keyboardType="decimal-pad"
+            accessibilityLabel="Discount"
           />
         )}
       />
@@ -190,21 +239,7 @@ export const ProductForm = memo(function ProductForm({
         )}
       />
 
-      <Controller
-        control={control}
-        name="currencyCode"
-        render={({ field }) => (
-          <Select
-            label="Currency"
-            options={CURRENCY_OPTIONS}
-            value={field.value}
-            placeholder="Select currency"
-            errorMessage={errors.currencyCode?.message}
-            onOpen={() => openPicker('currency', field.onChange)}
-            accessibilityLabel="Currency"
-          />
-        )}
-      />
+      {/* Currency dropdown removed as Settings currency is the global source of truth */}
 
       {isEdit && (
         <Controller
@@ -251,7 +286,7 @@ export const ProductForm = memo(function ProductForm({
       <BottomSheet
         ref={sheetRef}
         index={-1}
-        title={pickerTarget === 'currency' ? 'Select currency' : 'Select unit'}
+        title={pickerTitle}
         onClose={closePicker}
         enablePanDownToClose
       >

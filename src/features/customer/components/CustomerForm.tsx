@@ -102,7 +102,7 @@ export const CustomerForm = memo(function CustomerForm({
         name="taxId"
         render={({ field }) => (
           <Input
-            label="Tax ID / GST / VAT"
+            label="Tax ID"
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}

@@ -1,4 +1,7 @@
+import { DiscountType } from '@/services/invoice/calculation/types/invoice-calculation.types';
 import type { Money, OfflineEntity } from '@/types/models/common';
+
+export { DiscountType };
 
 export enum ProductType {
   Good = 'good',
@@ -26,6 +29,8 @@ export interface Product extends OfflineEntity {
   type: ProductType;
   unit: ProductUnit;
   unitPrice: Money;
+  discountType?: DiscountType;
+  discount?: number;
   taxRateBasisPoints: number;
   sku?: string;
   isActive: boolean;

@@ -295,11 +295,12 @@ export class InvoiceRepository {
   private toListItem(invoice: Invoice): InvoiceListItem {
     const status = resolveEffectiveStatus(invoice);
     const displayStatus = mapInvoiceStatus(status);
+    const currencyCode = getPreferredCurrencyCode();
     return {
       invoice: { ...invoice, status },
       displayStatus,
       badgeVariant: toBadgeVariant(displayStatus),
-      formattedAmount: formatMoney(invoice.totals.totalAmount.amountMinor, invoice.currencyCode),
+      formattedAmount: formatMoney(invoice.totals.totalAmount.amountMinor, currencyCode),
       formattedDate: formatInvoiceDate(invoice.issuedAt),
       customerName: invoice.customer.name || 'No customer',
     };
