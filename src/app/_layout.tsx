@@ -38,7 +38,7 @@ export default function RootLayout() {
     const setupFirebaseMessaging = async () => {
       const token = await getFcmToken();
 
-      if (token) {
+      if (token && __DEV__) {
         console.log('[FCM] Device token:', token);
 
         // For now:
@@ -49,14 +49,18 @@ export default function RootLayout() {
       }
 
       unsubscribeTokenRefresh = subscribeToFcmTokenRefresh((refreshedToken) => {
-        console.log('[FCM] New token:', refreshedToken);
+        if (__DEV__) {
+          console.log('[FCM] New token:', refreshedToken);
+        }
 
         // Later:
         // update token in Firestore/backend.
       });
 
       unsubscribeForeground = subscribeToForegroundMessages((remoteMessage) => {
-        console.log('[FCM] Foreground message received:', remoteMessage);
+        if (__DEV__) {
+          console.log('[FCM] Foreground message received:', remoteMessage);
+        }
       });
     };
 

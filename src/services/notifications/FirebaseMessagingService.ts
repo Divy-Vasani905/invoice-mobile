@@ -13,7 +13,7 @@ import {
   requestNotificationPermission,
 } from './AutoBackupReminderService';
 
-import type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import type { RemoteMessage } from '@react-native-firebase/messaging';
 
 export const FCM_NOTIFICATION_CHANNEL_ID = 'firebase-cloud';
 
@@ -36,7 +36,9 @@ export async function getFcmToken(): Promise<string | null> {
     }
 
     if (!permission.granted) {
-      console.log('[FCM] Notification permission denied');
+      if (__DEV__) {
+        console.log('[FCM] Notification permission denied');
+      }
       return null;
     }
 
@@ -48,7 +50,9 @@ export async function getFcmToken(): Promise<string | null> {
 
     const token = await getToken(messaging);
 
-    console.log('[FCM] FCM token:', token);
+    if (__DEV__) {
+      console.log('[FCM] FCM token:', token);
+    }
 
     return token;
   } catch (error) {
@@ -61,19 +65,23 @@ export function subscribeToFcmTokenRefresh(onToken: (token: string) => void): ()
   const messaging = getMessaging();
 
   return onTokenRefresh(messaging, (token) => {
-    console.log('[FCM] Token refreshed:', token);
+    if (__DEV__) {
+      console.log('[FCM] Token refreshed:', token);
+    }
 
     onToken(token);
   });
 }
 
 export function subscribeToForegroundMessages(
-  onMessageReceived?: (message: FirebaseMessagingTypes.RemoteMessage) => void,
+  onMessageReceived?: (message: RemoteMessage) => void,
 ): () => void {
   const messaging = getMessaging();
 
   return onMessage(messaging, async (remoteMessage) => {
-    console.log('[FCM] Foreground message:', remoteMessage);
+    if (__DEV__) {
+      console.log('[FCM] Foreground message:', remoteMessage);
+    }
 
     onMessageReceived?.(remoteMessage);
 

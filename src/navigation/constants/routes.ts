@@ -56,6 +56,7 @@ export const ROUTES = {
   editCustomer: (customerId: string): Href => `/edit-customer/${customerId}` as Href,
   createProduct: '/create-product' as Href,
   editProduct: (productId: string): Href => `/edit-product/${productId}` as Href,
+  cropBusinessImage: '/crop-business-image' as Href,
 } as const;
 
 /**
@@ -79,5 +80,6 @@ export const ROUTE_NAMES = {
     editCustomer: '(modals)/edit-customer/[customerId]',
     createProduct: '(modals)/create-product',
     editProduct: '(modals)/edit-product/[productId]',
+    cropBusinessImage: '(modals)/crop-business-image',
   },
 } as const;

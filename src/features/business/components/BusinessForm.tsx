@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { Controller, type Control, type FieldErrors } from 'react-hook-form';
 import { View } from 'react-native';
 
@@ -30,6 +31,7 @@ export function BusinessForm({
   onCancel,
   onSubmit,
 }: BusinessFormProps) {
+  const router = useRouter();
   const { theme } = useTheme();
 
   return (
@@ -45,10 +47,12 @@ export function BusinessForm({
             changeLabel="Change Logo"
             removeLabel="Remove Logo"
             onChangePress={() => {
-              void pickBusinessImage('logo').then((uri) => {
-                if (uri == null) return;
-                void removeBusinessAsset(field.value);
-                field.onChange(uri);
+              void pickBusinessImage('logo').then((imageUri) => {
+                if (imageUri == null) return;
+                router.push({
+                  pathname: '/crop-business-image',
+                  params: { imageUri, kind: 'logo' },
+                });
               });
             }}
             onRemovePress={() => {
@@ -256,10 +260,12 @@ export function BusinessForm({
             removeLabel="Remove Signature"
             aspectRatio={3}
             onChangePress={() => {
-              void pickBusinessImage('signature').then((uri) => {
-                if (uri == null) return;
-                void removeBusinessAsset(field.value);
-                field.onChange(uri);
+              void pickBusinessImage('signature').then((imageUri) => {
+                if (imageUri == null) return;
+                router.push({
+                  pathname: '/crop-business-image',
+                  params: { imageUri, kind: 'signature' },
+                });
               });
             }}
             onRemovePress={() => {

@@ -1,7 +1,5 @@
 import { showToast } from '@/components/feedback/Toast';
 
-import { persistBusinessAsset } from './business-assets';
-
 import type { BusinessAssetKind } from '../types/business.types';
 
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
@@ -15,8 +13,8 @@ function isNativeModuleMissing(error: unknown): boolean {
   );
 }
 
-/** Opens the device gallery and persists a selected image for business assets. */
-export async function pickBusinessImage(kind: BusinessAssetKind): Promise<string | null> {
+/** Opens the device gallery and returns the unpersisted selected image URI. */
+export async function pickBusinessImage(_kind: BusinessAssetKind): Promise<string | null> {
   try {
     // Dynamic import keeps Business screens loadable before a native rebuild
     // that includes expo-image-picker is installed on the device.
@@ -33,9 +31,8 @@ export async function pickBusinessImage(kind: BusinessAssetKind): Promise<string
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: kind === 'logo' ? [1, 1] : [3, 1],
-      quality: 0.85,
+      allowsEditing: false,
+      quality: 1,
     });
 
     if (result.canceled || result.assets[0] == null) return null;
@@ -49,7 +46,7 @@ export async function pickBusinessImage(kind: BusinessAssetKind): Promise<string
       return null;
     }
 
-    return await persistBusinessAsset(asset.uri, kind);
+    return asset.uri;
   } catch (error) {
     if (isNativeModuleMissing(error)) {
       showToast('error', {
@@ -61,7 +58,7 @@ export async function pickBusinessImage(kind: BusinessAssetKind): Promise<string
     }
 
     showToast('error', {
-      title: 'Image could not be saved',
+      title: 'Image could not be selected',
       message: error instanceof Error ? error.message : 'Please try another image.',
     });
     return null;

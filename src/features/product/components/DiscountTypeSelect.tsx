@@ -1,12 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { memo, useCallback, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  Text,
-  View,
-  type LayoutRectangle,
-} from 'react-native';
+import { Modal, Pressable, Text, View, type LayoutRectangle } from 'react-native';
 
 import { getFieldStyles, resolveFieldState } from '@/components/form/shared/styles';
 import { useTheme } from '@/theme';
@@ -70,9 +64,7 @@ export const DiscountTypeSelect = memo(function DiscountTypeSelect({
 
   return (
     <View style={styles.container}>
-      {label != null && (
-        <Text style={styles.label}>{label}</Text>
-      )}
+      {label != null && <Text style={styles.label}>{label}</Text>}
 
       {/* Trigger row */}
       <View ref={triggerRef} collapsable={false}>
@@ -124,11 +116,7 @@ export const DiscountTypeSelect = memo(function DiscountTypeSelect({
         statusBarTranslucent
       >
         {/* Full-screen backdrop closes dropdown on outside tap */}
-        <Pressable
-          style={{ flex: 1 }}
-          onPress={handleClose}
-          accessible={false}
-        >
+        <Pressable style={{ flex: 1 }} onPress={handleClose} accessible={false}>
           {/* The anchored dropdown panel */}
           {layout != null && (
             <View
@@ -168,8 +156,8 @@ export const DiscountTypeSelect = memo(function DiscountTypeSelect({
                       backgroundColor: pressed
                         ? theme.colors.backgroundSubtle
                         : isSelected
-                        ? theme.colors.backgroundSubtle
-                        : theme.colors.surface,
+                          ? theme.colors.backgroundSubtle
+                          : theme.colors.surface,
                       borderBottomWidth: isLast ? 0 : 1,
                       borderBottomColor: theme.colors.border,
                     })}
@@ -179,9 +167,7 @@ export const DiscountTypeSelect = memo(function DiscountTypeSelect({
                         {
                           flex: 1,
                           fontSize: 15,
-                          color: isSelected
-                            ? theme.colors.primary
-                            : theme.colors.textPrimary,
+                          color: isSelected ? theme.colors.primary : theme.colors.textPrimary,
                           fontWeight: isSelected ? '600' : '400',
                         },
                       ]}

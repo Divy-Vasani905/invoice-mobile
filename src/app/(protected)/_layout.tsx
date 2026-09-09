@@ -63,6 +63,10 @@ export default function ProtectedLayout() {
           name={ROUTE_NAMES.modals.editProduct}
           options={modal.modal({ title: 'Edit Product' })}
         />
+        <Stack.Screen
+          name={ROUTE_NAMES.modals.cropBusinessImage}
+          options={modal.fullScreen({ title: 'Crop Image' })}
+        />
       </Stack>
     </>
   );

@@ -145,13 +145,6 @@ export const DashboardScreen = memo(function DashboardScreen() {
               isPremium={isPremium}
               onPress={openUsageModal}
             />
-            {/* <IconButton
-              icon={({ color, size }) => (
-                <Ionicons name="notifications-outline" color={color} size={size} />
-              )}
-              accessibilityLabel="View notifications"
-              onPress={() => undefined}
-            /> */}
             <IconButton
               icon={({ color, size }) => (
                 <Ionicons name="person-outline" color={color} size={size} />

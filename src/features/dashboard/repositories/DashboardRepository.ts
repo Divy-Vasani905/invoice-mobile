@@ -61,10 +61,7 @@ function toDashboardInvoice(invoice: DomainInvoice): Invoice {
     id: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     customerName: invoice.customer.name,
-    amount: toMajorUnits(
-      invoice.totals.totalAmount.amountMinor,
-      currencyCode,
-    ),
+    amount: toMajorUnits(invoice.totals.totalAmount.amountMinor, currencyCode),
     status: mapInvoiceStatus(invoice.status),
     date: new Intl.DateTimeFormat().format(new Date(invoice.issuedAt)),
     currencyCode,

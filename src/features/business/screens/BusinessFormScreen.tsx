@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -15,7 +15,9 @@ import { cStyleValues } from '@/theme/cStyle';
 
 import { BusinessForm } from '../components/BusinessForm';
 import { useBusiness } from '../hooks/useBusiness';
+import { persistBusinessAsset, removeBusinessAsset } from '../utils/business-assets';
 import { EMPTY_BUSINESS_FORM, toBusinessFormValues } from '../utils/business.utils';
+import { consumeCropResult } from '../utils/crop-result';
 import { businessSchema } from '../validation/business.schema';
 
 import type { BusinessFormValues } from '../types/business.types';
@@ -24,6 +26,7 @@ export function BusinessFormScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+
   const {
     business,
     createBusiness,
@@ -37,13 +40,47 @@ export function BusinessFormScreen() {
   const {
     control,
     formState: { errors },
+    getValues,
     handleSubmit,
     reset,
+    setValue,
   } = useForm<BusinessFormValues>({
     resolver: zodResolver(businessSchema),
     defaultValues: EMPTY_BUSINESS_FORM,
     mode: 'onSubmit',
   });
+
+  /**
+   * When this screen regains focus (e.g. after CropBusinessImageScreen calls
+   * router.back()), check for a pending crop result and persist it.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      const result = consumeCropResult();
+      if (result == null) return;
+
+      void (async () => {
+        try {
+          const persistedUri = await persistBusinessAsset(result.uri, result.kind);
+          if (result.kind === 'logo') {
+            const oldUri = getValues('logoUri');
+            void removeBusinessAsset(oldUri);
+            setValue('logoUri', persistedUri, { shouldDirty: true });
+          } else if (result.kind === 'signature') {
+            const oldUri = getValues('authorizedSignatureUri');
+            void removeBusinessAsset(oldUri);
+            setValue('authorizedSignatureUri', persistedUri, { shouldDirty: true });
+          }
+        } catch (err) {
+          showToast('error', {
+            title: 'Image could not be saved',
+            message: err instanceof Error ? err.message : 'Please try again.',
+          });
+        }
+      })();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   useEffect(() => {
     if (business != null) {

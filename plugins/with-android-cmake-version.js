@@ -41,7 +41,9 @@ const withAndroidCmakeVersion = (config, options) => {
     const androidBlock = /^android\s*\{[^\S\n]*$/m;
 
     if (!androidBlock.test(contents)) {
-      throw new Error(`${PLUGIN_NAME}: could not locate the "android {" block in app/build.gradle.`);
+      throw new Error(
+        `${PLUGIN_NAME}: could not locate the "android {" block in app/build.gradle.`,
+      );
     }
 
     const injected = [
@@ -56,7 +58,7 @@ const withAndroidCmakeVersion = (config, options) => {
 
     gradleConfig.modResults.contents = contents.replace(
       androidBlock,
-      (match) => `${match}\n${injected}`
+      (match) => `${match}\n${injected}`,
     );
 
     return gradleConfig;
