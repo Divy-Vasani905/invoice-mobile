@@ -21,7 +21,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { showToast } from '@/components/feedback/Toast';
-import { Header } from '@/components/layout/Header';
 import { cStyle, useTheme } from '@/theme';
 
 import { cropBusinessImage } from '../utils/crop-business-image';
@@ -238,8 +237,6 @@ export function CropBusinessImageScreen() {
     }
   };
 
-  const handleCancel = () => router.back();
-
   if (imageUri == null || rawSize == null) {
     return (
       <View
@@ -263,32 +260,6 @@ export function CropBusinessImageScreen() {
 
   return (
     <View style={[cStyle.flex1, { backgroundColor: '#0A0C10' }]}>
-      <Header
-        title={kind === 'signature' ? 'Crop Signature' : 'Crop Logo'}
-        onBack={handleCancel}
-        rightActions={
-          <Pressable
-            onPress={handleDone}
-            disabled={isProcessing}
-            style={({ pressed }) => [
-              cStyle.ph16,
-              cStyle.pv8,
-              cStyle.r20,
-              {
-                backgroundColor: theme.colors.primary,
-                opacity: pressed || isProcessing ? 0.7 : 1,
-              },
-            ]}
-          >
-            {isProcessing ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={[theme.typography.button, { color: '#FFFFFF' }]}>Done</Text>
-            )}
-          </Pressable>
-        }
-      />
-
       <View style={[cStyle.flex1, cStyle.itemCenter, cStyle.justifyCenter, { overflow: 'hidden' }]}>
         {/* Gesture container over full preview area */}
         <GestureDetector gesture={composedGesture}>
@@ -393,6 +364,25 @@ export function CropBusinessImageScreen() {
             </Text>
           </Pressable>
         </View>
+        <Pressable
+          onPress={handleDone}
+          disabled={isProcessing}
+          style={({ pressed }) => [
+            cStyle.ph24,
+            cStyle.pv12,
+            cStyle.r32,
+            {
+              backgroundColor: theme.colors.primary,
+              opacity: pressed || isProcessing ? 0.7 : 1,
+            },
+          ]}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={[theme.typography.button, { color: '#FFFFFF' }]}>Done</Text>
+          )}
+        </Pressable>
       </View>
     </View>
   );
