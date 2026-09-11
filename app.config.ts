@@ -35,13 +35,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDevelopment ? 'Easy Invoice Maker (Dev)' : 'Easy Invoice Maker',
   slug: 'easy-invoice-maker',
-  version: '0.1.7',
+  version: '0.1.8',
   orientation: 'portrait',
   icon: './assets/images/invoice-base-icon.png',
   scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
-    buildNumber: '7',
+    buildNumber: '8',
     icon: './assets/expo.icon',
     bundleIdentifier: 'com.divyvasani.easyinvoicemaker',
     supportsTablet: true,
@@ -53,7 +53,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 7,
+    versionCode: 8,
     package: androidPackage,
     adaptiveIcon: {
       backgroundColor: '#F0FFFB',
