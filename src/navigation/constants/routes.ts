@@ -40,6 +40,7 @@ export const ROUTES = {
   taxForm: (taxId?: string): Href =>
     (taxId == null ? '/settings/tax-form' : `/settings/tax-form?taxId=${taxId}`) as Href,
   backupRestore: '/settings/backup-restore' as Href,
+  paymentReminders: '/settings/payment-reminders' as Href,
   termsOfService: '/settings/terms' as Href,
 
   // Premium module

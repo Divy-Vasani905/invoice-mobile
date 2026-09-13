@@ -8,18 +8,19 @@ const optionalEmail = z
     'Enter a valid email address',
   );
 
-const optionalPhone = z
+const requiredPhone = z
   .string()
   .trim()
+  .min(7, 'Phone number is required')
   .refine(
-    (value) => value.length === 0 || /^(?=(?:\D*\d){7,15}\D*$)\+?[\d\s().-]+$/.test(value),
+    (value) => /^(?=(?:\D*\d){7,15}\D*$)\+?[\d\s().-]+$/.test(value),
     'Enter a valid phone number with 7 to 15 digits',
   );
 
 export const customerSchema = z.object({
   displayName: z.string().trim().min(1, 'Customer name is required'),
   companyName: z.string(),
-  phone: optionalPhone,
+  phone: requiredPhone,
   email: optionalEmail,
   taxId: z.string(),
   billingAddress: z.string(),

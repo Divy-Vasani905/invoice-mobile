@@ -3,6 +3,10 @@ import { customerFeatureRepository } from '@/features/customer/repositories/Cust
 import { taxSettingsRepository } from '@/features/tax/repositories/TaxSettingsRepository';
 import { NO_TAX_SELECTION_ID } from '@/features/tax/utils/tax.utils';
 import {
+  cancelPaymentRemindersForInvoice,
+  syncPaymentRemindersForInvoice,
+} from '@/services/notifications';
+import {
   invoiceRepository,
   settingsRepository,
   type InvoiceRepository as InvoiceStorageRepository,
@@ -184,6 +188,7 @@ export class InvoiceRepository {
       this.assertInvoiceNumberUnused(invoice.invoiceNumber);
       this.invoices.create(invoice);
       this.persistNextInvoiceNumber(settings, reservation.nextNumber);
+      void syncPaymentRemindersForInvoice(invoice.id);
       return invoice;
     });
   }
@@ -217,12 +222,14 @@ export class InvoiceRepository {
     });
 
     this.invoices.update(invoice);
+    void syncPaymentRemindersForInvoice(invoice.id);
     return invoice;
   }
 
   public deleteInvoice(invoiceId: string): void {
     this.requireInvoice(invoiceId);
     this.invoices.delete(invoiceId);
+    void cancelPaymentRemindersForInvoice(invoiceId);
   }
 
   public duplicateInvoice(invoiceId: string): Invoice {
@@ -267,6 +274,7 @@ export class InvoiceRepository {
       this.assertInvoiceNumberUnused(invoice.invoiceNumber);
       this.invoices.create(invoice);
       this.persistNextInvoiceNumber(settings, reservation.nextNumber);
+      void syncPaymentRemindersForInvoice(invoice.id);
       return invoice;
     });
   }
@@ -289,6 +297,7 @@ export class InvoiceRepository {
       syncStatus: SyncStatus.Pending,
     };
     this.invoices.update(invoice);
+    void cancelPaymentRemindersForInvoice(invoiceId);
     return invoice;
   }
 

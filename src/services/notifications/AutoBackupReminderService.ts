@@ -170,6 +170,7 @@ async function buildAutoBackupReminderContent(): Promise<Notifications.Notificat
           {
             identifier: 'auto-backup-reminder-logo',
             url: asset.localUri,
+            type: 'png',
           },
         ];
       }

@@ -318,6 +318,15 @@ export function SettingsScreen() {
           </SettingsSection>
         )}
 
+        <SettingsSection title="Notifications">
+          <SettingsRow
+            label="Payment Reminder"
+            leading={leadingIcon('notifications-outline')}
+            onPress={() => router.push(ROUTES.paymentReminders)}
+            accessibilityHint="Opens payment reminder settings"
+          />
+        </SettingsSection>
+
         <SettingsSection title="Data & Backup">
           <SettingsRow
             label={isExportingBackup ? 'Creating backup...' : 'Export Backup'}

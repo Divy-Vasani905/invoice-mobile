@@ -8,7 +8,13 @@ import {
   productRepository,
   userPreferencesRepository,
 } from '@/storage';
-import { DEFAULT_USER_PREFERENCES, type UserPreferences } from '@/types/models/user-preferences';
+import {
+  DEFAULT_PAYMENT_REMINDER_SETTINGS,
+  DEFAULT_USER_PREFERENCES,
+  type PaymentReminderSettings,
+  type PaymentReminderType,
+  type UserPreferences,
+} from '@/types/models/user-preferences';
 
 export type UserPreferencesState = UserPreferences & {
   isHydrated: boolean;
@@ -17,11 +23,48 @@ export type UserPreferencesState = UserPreferences & {
   setCurrencyCode: (currencyCode: string) => void;
   setAutoBackupReminderEnabled: (enabled: boolean) => void;
   markAutoBackupReminderIntroShown: () => void;
+  setPaymentReminderEnabled: (enabled: boolean) => void;
+  setPaymentReminderTypeEnabled: (type: PaymentReminderType, enabled: boolean) => void;
   resetOnboarding: () => void;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === 'object';
+}
+
+function normalizePaymentReminderSettings(stored: unknown): PaymentReminderSettings {
+  if (!isRecord(stored)) return DEFAULT_PAYMENT_REMINDER_SETTINGS;
+  const enabled = stored.enabled === true;
+  const storedTypes = isRecord(stored.enabledTypes) ? stored.enabledTypes : {};
+  const defaults = DEFAULT_PAYMENT_REMINDER_SETTINGS.enabledTypes;
+
+  return {
+    enabled,
+    enabledTypes: {
+      '7_DAYS_BEFORE':
+        typeof storedTypes['7_DAYS_BEFORE'] === 'boolean'
+          ? storedTypes['7_DAYS_BEFORE']
+          : defaults['7_DAYS_BEFORE'],
+      '2_DAYS_BEFORE':
+        typeof storedTypes['2_DAYS_BEFORE'] === 'boolean'
+          ? storedTypes['2_DAYS_BEFORE']
+          : defaults['2_DAYS_BEFORE'],
+      DUE_DATE:
+        typeof storedTypes.DUE_DATE === 'boolean' ? storedTypes.DUE_DATE : defaults.DUE_DATE,
+      '1_DAY_AFTER':
+        typeof storedTypes['1_DAY_AFTER'] === 'boolean'
+          ? storedTypes['1_DAY_AFTER']
+          : defaults['1_DAY_AFTER'],
+      '3_DAYS_AFTER':
+        typeof storedTypes['3_DAYS_AFTER'] === 'boolean'
+          ? storedTypes['3_DAYS_AFTER']
+          : defaults['3_DAYS_AFTER'],
+      '7_DAYS_AFTER':
+        typeof storedTypes['7_DAYS_AFTER'] === 'boolean'
+          ? storedTypes['7_DAYS_AFTER']
+          : defaults['7_DAYS_AFTER'],
+    },
+  };
 }
 
 function normalizePreferences(stored: UserPreferences | Record<string, unknown> | null): {
@@ -52,9 +95,12 @@ function normalizePreferences(stored: UserPreferences | Record<string, unknown> 
       autoBackupReminderEnabled: stored.autoBackupReminderEnabled === true,
       autoBackupReminderIntroShown:
         stored.autoBackupReminderIntroShown === true || isExistingOnboardedUser,
+      paymentReminderSettings: normalizePaymentReminderSettings(stored.paymentReminderSettings),
     },
     shouldPersist:
-      !hasIntroKey || !Object.prototype.hasOwnProperty.call(stored, 'autoBackupReminderEnabled'),
+      !hasIntroKey ||
+      !Object.prototype.hasOwnProperty.call(stored, 'autoBackupReminderEnabled') ||
+      !Object.prototype.hasOwnProperty.call(stored, 'paymentReminderSettings'),
   };
 }
 
@@ -87,6 +133,7 @@ function withCurrent(
     autoBackupReminderEnabled: patch.autoBackupReminderEnabled ?? current.autoBackupReminderEnabled,
     autoBackupReminderIntroShown:
       patch.autoBackupReminderIntroShown ?? current.autoBackupReminderIntroShown,
+    paymentReminderSettings: patch.paymentReminderSettings ?? current.paymentReminderSettings,
   };
 }
 
@@ -168,6 +215,31 @@ export const useUserPreferencesStore = create<UserPreferencesState>((set, get) =
     const next = withCurrent(get, { autoBackupReminderIntroShown: true });
     persist(next);
     set({ autoBackupReminderIntroShown: true });
+  },
+
+  setPaymentReminderEnabled: (enabled) => {
+    const current = get().paymentReminderSettings;
+    const paymentReminderSettings: PaymentReminderSettings = {
+      ...current,
+      enabled,
+    };
+    const next = withCurrent(get, { paymentReminderSettings });
+    persist(next);
+    set({ paymentReminderSettings });
+  },
+
+  setPaymentReminderTypeEnabled: (type, enabled) => {
+    const current = get().paymentReminderSettings;
+    const paymentReminderSettings: PaymentReminderSettings = {
+      ...current,
+      enabledTypes: {
+        ...current.enabledTypes,
+        [type]: enabled,
+      },
+    };
+    const next = withCurrent(get, { paymentReminderSettings });
+    persist(next);
+    set({ paymentReminderSettings });
   },
 
   resetOnboarding: () => {

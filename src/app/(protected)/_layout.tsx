@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 
 import { AutoBackupReminderRuntime } from '@/features/settings/components/AutoBackupReminderRuntime';
+import { PaymentReminderRuntime } from '@/features/settings/components/PaymentReminderRuntime';
 import { HEADERLESS_SCREEN_OPTIONS } from '@/navigation/config/screen-options';
 import { ROUTE_NAMES } from '@/navigation/constants/routes';
 import {
@@ -27,6 +28,7 @@ export default function ProtectedLayout() {
   return (
     <>
       <AutoBackupReminderRuntime />
+      <PaymentReminderRuntime />
       <Stack screenOptions={screenOptions}>
         <Stack.Screen name={ROUTE_NAMES.tabs} options={HEADERLESS_SCREEN_OPTIONS} />
         <Stack.Screen name={ROUTE_NAMES.premium} options={HEADERLESS_SCREEN_OPTIONS} />

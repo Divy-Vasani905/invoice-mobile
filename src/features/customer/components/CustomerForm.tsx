@@ -69,6 +69,7 @@ export const CustomerForm = memo(function CustomerForm({
         render={({ field }) => (
           <Input
             label="Phone Number"
+            required
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}

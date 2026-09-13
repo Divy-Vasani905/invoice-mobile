@@ -35,6 +35,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="tax-settings" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="tax-form" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="backup-restore" options={HEADERLESS_SCREEN_OPTIONS} />
+      <Stack.Screen name="payment-reminders" options={HEADERLESS_SCREEN_OPTIONS} />
       <Stack.Screen name="terms" options={createHeaderOptions({ title: 'Terms' })} />
     </Stack>
   );
