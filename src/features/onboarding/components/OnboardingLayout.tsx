@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
@@ -156,25 +157,64 @@ export function PreferenceSelectCard({
   placeholder: string;
   onPress: () => void;
 }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
+  const hasValue = value != null;
 
   return (
-    <Card variant="outlined" pressable onPress={onPress} accessibilityLabel={label}>
-      <ThemedText style={[theme.typography.caption, { color: theme.colors.textTertiary }]}>
+    <Card
+      variant="outlined"
+      pressable
+      onPress={onPress}
+      accessibilityLabel={label}
+      style={{
+        borderColor: hasValue ? theme.colors.primary : theme.colors.borderStrong,
+        borderWidth: 1.5,
+        backgroundColor: isDark ? theme.colors.surfaceRaised : theme.colors.surface,
+      }}
+    >
+      <ThemedText
+        style={[
+          theme.typography.label,
+          {
+            color: isDark ? theme.colors.textSecondary : theme.colors.textPrimary,
+            fontWeight: '600',
+            letterSpacing: 0.3,
+          },
+        ]}
+      >
         {label}
       </ThemedText>
       <View style={[cStyle.flexRow, cStyle.itemCenter, cStyle.justifyBetween, cStyle.mt8]}>
         <ThemedText
           style={[
-            theme.typography.bodyMedium,
-            { color: value == null ? theme.colors.textPlaceholder : theme.colors.textPrimary },
+            theme.typography.bodyLarge,
+            {
+              color: theme.colors.textPrimary,
+              fontWeight: hasValue ? '600' : '500',
+            },
           ]}
         >
           {value ?? placeholder}
         </ThemedText>
-        <ThemedText style={[theme.typography.title, { color: theme.colors.textTertiary }]}>
-          ›
-        </ThemedText>
+        <View
+          style={[
+            cStyle.itemCenter,
+            cStyle.justifyCenter,
+            {
+              width: 28,
+              height: 28,
+              borderRadius: 14,
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+            },
+          ]}
+        >
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={theme.colors.textPrimary}
+            importantForAccessibility="no"
+          />
+        </View>
       </View>
     </Card>
   );

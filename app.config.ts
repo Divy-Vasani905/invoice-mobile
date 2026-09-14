@@ -25,7 +25,9 @@ const admobAndroidAppId =
 // const admobIosAppId = process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID?.trim() || ADMOB_TEST_IOS_APP_ID;
 
 /** Local debug installs use `.dev` so they sit next to the Play Store app. Set APP_VARIANT=production for store builds. */
-const isDevelopment = process.env.APP_VARIANT !== 'production';
+const appVariant = process.env.APP_VARIANT?.trim() || 'development';
+
+const isDevelopment = appVariant === 'development';
 
 const androidPackage = isDevelopment
   ? 'com.divyvasani.easyinvoicemaker.dev'
@@ -35,13 +37,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDevelopment ? 'Easy Invoice Maker (Dev)' : 'Easy Invoice Maker',
   slug: 'easy-invoice-maker',
-  version: '0.1.8',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/invoice-base-icon.png',
   scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
-    buildNumber: '8',
+    buildNumber: '9',
     icon: './assets/expo.icon',
     bundleIdentifier: 'com.divyvasani.easyinvoicemaker',
     supportsTablet: true,
@@ -53,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 8,
+    versionCode: 9,
     package: androidPackage,
     adaptiveIcon: {
       backgroundColor: '#F0FFFB',
@@ -132,6 +134,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         android: {
           // Avoid AGP IncrementalSplitterRunnable failures on Windows when
           // packaging uncompressed page-aligned native libraries.
+          minSdkVersion: 24,
           useLegacyPackaging: true,
         },
         ios: {
