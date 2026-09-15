@@ -25,7 +25,7 @@ const admobAndroidAppId =
 // const admobIosAppId = process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID?.trim() || ADMOB_TEST_IOS_APP_ID;
 
 /** Local debug installs use `.dev` so they sit next to the Play Store app. Set APP_VARIANT=production for store builds. */
-const appVariant = process.env.APP_VARIANT?.trim() || 'development';
+const appVariant = process.env.APP_VARIANT?.trim() || 'production';
 
 const isDevelopment = appVariant === 'development';
 
@@ -37,13 +37,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: isDevelopment ? 'Easy Invoice Maker (Dev)' : 'Easy Invoice Maker',
   slug: 'easy-invoice-maker',
-  version: '1.0.1',
+  version: '1.0.2',
   orientation: 'portrait',
   icon: './assets/images/invoice-base-icon.png',
   scheme: 'easyinvoicemaker',
   userInterfaceStyle: 'automatic',
   ios: {
-    buildNumber: '9',
+    buildNumber: '10',
     icon: './assets/expo.icon',
     bundleIdentifier: 'com.divyvasani.easyinvoicemaker',
     supportsTablet: true,
@@ -55,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 9,
+    versionCode: 10,
     package: androidPackage,
     adaptiveIcon: {
       backgroundColor: '#F0FFFB',
@@ -92,7 +92,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         microphonePermission: false,
       },
     ],
+    './plugins/withAndroidR8Optimization',
     './plugins/with-android-cmake-version',
+    './plugins/with-firebase-disable-SPM',
     [
       'expo-splash-screen',
       {
@@ -136,6 +138,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           // packaging uncompressed page-aligned native libraries.
           minSdkVersion: 24,
           useLegacyPackaging: true,
+
+          // Enable R8 for release builds.
+          enableMinifyInReleaseBuilds: true,
+
+          // Remove unused Android resources in release builds.
+          enableShrinkResourcesInReleaseBuilds: true,
         },
         ios: {
           useFrameworks: 'static',
