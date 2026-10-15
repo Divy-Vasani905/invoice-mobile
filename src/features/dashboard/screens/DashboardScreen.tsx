@@ -135,7 +135,7 @@ export const DashboardScreen = memo(function DashboardScreen() {
                 { color: theme.colors.textPrimary, fontSize: 20 },
               ]}
             >
-              EasyInvoice Maker
+              Easy Invoice Maker
             </ThemedText>
           </View>
 
